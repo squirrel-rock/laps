@@ -1,0 +1,82 @@
+import SwiftUI
+import UIKit
+
+enum Theme {
+    static let teal = dynamic(light: 0x168A85, dark: 0x168A85)   // white text stays readable in both modes
+    static let darkTeal = dynamic(light: 0x126B67, dark: 0x7FD6CF)
+    static let lightTeal = dynamic(light: 0xDDF3EF, dark: 0x1D3836)
+    static let background = dynamic(light: 0xFAF7F2, dark: 0x121615)
+    static let card = dynamic(light: 0xFFFFFF, dark: 0x1D2322)
+    static let text = dynamic(light: 0x2B2D2D, dark: 0xEEF1F0)
+    static let secondaryText = dynamic(light: 0x5C6362, dark: 0xA9B3B1)
+    static let warm = dynamic(light: 0xE9A23B, dark: 0xF2B65A)   // celebration accent, never a warning
+
+    static func dynamic(light: UInt32, dark: UInt32) -> Color {
+        Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(hex: dark) : UIColor(hex: light) })
+    }
+}
+
+extension UIColor {
+    convenience init(hex: UInt32) {
+        self.init(red: CGFloat((hex >> 16) & 0xFF) / 255,
+                  green: CGFloat((hex >> 8) & 0xFF) / 255,
+                  blue: CGFloat(hex & 0xFF) / 255,
+                  alpha: 1)
+    }
+}
+
+/// Big teal button for the main action.
+struct PrimaryButtonStyle: ButtonStyle {
+    var minHeight: CGFloat = 96
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(.title, design: .rounded).weight(.bold))
+            .foregroundStyle(.white)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity, minHeight: minHeight)
+            .padding(.horizontal, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .fill(Theme.teal)
+                    .shadow(color: Theme.darkTeal.opacity(0.3), radius: configuration.isPressed ? 2 : 8, y: configuration.isPressed ? 1 : 4)
+            )
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(.spring(response: 0.25, dampingFraction: 0.7), value: configuration.isPressed)
+    }
+}
+
+/// Quieter, still-large button for secondary actions.
+struct SecondaryButtonStyle: ButtonStyle {
+    var minHeight: CGFloat = 72
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(.title3, design: .rounded).weight(.semibold))
+            .foregroundStyle(Theme.darkTeal)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity, minHeight: minHeight)
+            .padding(.horizontal, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(Theme.lightTeal)
+            )
+            .opacity(configuration.isPressed ? 0.75 : 1)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+    }
+}
+
+struct CardModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .padding(20)
+            .frame(maxWidth: .infinity)
+            .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(Theme.card))
+            .shadow(color: .black.opacity(0.05), radius: 10, y: 3)
+    }
+}
+
+extension View {
+    func card() -> some View { modifier(CardModifier()) }
+}

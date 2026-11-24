@@ -1,0 +1,54 @@
+name: RichardsWalks
+options:
+  bundleIdPrefix: com.squirrelrock
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    DEVELOPMENT_TEAM: 6Y4GKX652F
+    CODE_SIGN_STYLE: Automatic
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  RichardsWalks:
+    type: application
+    platform: iOS
+    sources:
+      - RichardsWalks
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.squirrelrock.RichardsWalks
+        PRODUCT_NAME: RichardsWalks
+        INFOPLIST_KEY_CFBundleDisplayName: "Richard's Walks"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ENABLE_PREVIEWS: YES
+  RichardsWalksTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - RichardsWalksTests
+    dependencies:
+      - target: RichardsWalks
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.squirrelrock.RichardsWalksTests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/RichardsWalks.app/RichardsWalks"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+schemes:
+  RichardsWalks:
+    build:
+      targets:
+        RichardsWalks: all
+        RichardsWalksTests: [test]
+    test:
+      targets:
+        - RichardsWalksTests
