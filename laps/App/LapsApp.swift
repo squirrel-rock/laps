@@ -2,7 +2,7 @@ import SwiftUI
 import UserNotifications
 
 @main
-struct RichardsWalksApp: App {
+struct LapsApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @Environment(\.scenePhase) private var scenePhase
 

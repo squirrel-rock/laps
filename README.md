@@ -1,4 +1,4 @@
-# Richard's Walks
+# laps
 
 A small, standalone iPhone app that helps Richard keep up his daily indoor walking circuit.
 
@@ -21,13 +21,13 @@ Requires Xcode 26 and [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`projec
 
 ```bash
 xcodegen generate
-open RichardsWalks.xcodeproj
+open laps.xcodeproj
 ```
 
 Run tests:
 
 ```bash
-xcodebuild test -project RichardsWalks.xcodeproj -scheme RichardsWalks -destination 'platform=iOS Simulator,name=iPhone 16 Pro Max'
+xcodebuild test -project laps.xcodeproj -scheme laps -destination 'platform=iOS Simulator,name=iPhone 16 Pro Max'
 ```
 
 ## Data

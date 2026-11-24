@@ -253,7 +253,7 @@ final class WalkStore {
             let raw = try JSONEncoder.walks.encode(data)
             try raw.write(to: fileURL, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
         } catch {
-            print("Richard's Walks: failed to save – \(error)")
+            print("laps: failed to save – \(error)")
         }
         refreshReminders()
     }

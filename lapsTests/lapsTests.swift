@@ -1,5 +1,5 @@
 import XCTest
-@testable import RichardsWalks
+@testable import laps
 
 final class FakeScheduler: ReminderScheduling {
     var plans: [[PlannedReminder]] = []

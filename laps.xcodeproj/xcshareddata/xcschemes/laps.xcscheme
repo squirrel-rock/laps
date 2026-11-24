@@ -15,10 +15,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "8DE3BBAC8C48891D4D18154F"
-               BuildableName = "RichardsWalks.app"
-               BlueprintName = "RichardsWalks"
-               ReferencedContainer = "container:RichardsWalks.xcodeproj">
+               BlueprintIdentifier = "FC56C61FD881EC4D7F5854BA"
+               BuildableName = "laps.app"
+               BlueprintName = "laps"
+               ReferencedContainer = "container:laps.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -29,10 +29,10 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "ED5E22646AD03E998172EABA"
-               BuildableName = "RichardsWalksTests.xctest"
-               BlueprintName = "RichardsWalksTests"
-               ReferencedContainer = "container:RichardsWalks.xcodeproj">
+               BlueprintIdentifier = "0CBACCE69C0D630D9F46FA99"
+               BuildableName = "lapsTests.xctest"
+               BlueprintName = "lapsTests"
+               ReferencedContainer = "container:laps.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -46,10 +46,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "8DE3BBAC8C48891D4D18154F"
-            BuildableName = "RichardsWalks.app"
-            BlueprintName = "RichardsWalks"
-            ReferencedContainer = "container:RichardsWalks.xcodeproj">
+            BlueprintIdentifier = "FC56C61FD881EC4D7F5854BA"
+            BuildableName = "laps.app"
+            BlueprintName = "laps"
+            ReferencedContainer = "container:laps.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <Testables>
@@ -58,10 +58,10 @@
             parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "ED5E22646AD03E998172EABA"
-               BuildableName = "RichardsWalksTests.xctest"
-               BlueprintName = "RichardsWalksTests"
-               ReferencedContainer = "container:RichardsWalks.xcodeproj">
+               BlueprintIdentifier = "0CBACCE69C0D630D9F46FA99"
+               BuildableName = "lapsTests.xctest"
+               BlueprintName = "lapsTests"
+               ReferencedContainer = "container:laps.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -82,10 +82,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "8DE3BBAC8C48891D4D18154F"
-            BuildableName = "RichardsWalks.app"
-            BlueprintName = "RichardsWalks"
-            ReferencedContainer = "container:RichardsWalks.xcodeproj">
+            BlueprintIdentifier = "FC56C61FD881EC4D7F5854BA"
+            BuildableName = "laps.app"
+            BlueprintName = "laps"
+            ReferencedContainer = "container:laps.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -99,10 +99,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "8DE3BBAC8C48891D4D18154F"
-            BuildableName = "RichardsWalks.app"
-            BlueprintName = "RichardsWalks"
-            ReferencedContainer = "container:RichardsWalks.xcodeproj">
+            BlueprintIdentifier = "FC56C61FD881EC4D7F5854BA"
+            BuildableName = "laps.app"
+            BlueprintName = "laps"
+            ReferencedContainer = "container:laps.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

@@ -1,4 +1,4 @@
-name: RichardsWalks
+name: laps
 options:
   bundleIdPrefix: com.squirrelrock
   deploymentTarget:
@@ -12,16 +12,16 @@ settings:
     MARKETING_VERSION: "1.0"
     CURRENT_PROJECT_VERSION: "1"
 targets:
-  RichardsWalks:
+  laps:
     type: application
     platform: iOS
     sources:
-      - RichardsWalks
+      - laps
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.squirrelrock.RichardsWalks
-        PRODUCT_NAME: RichardsWalks
-        INFOPLIST_KEY_CFBundleDisplayName: "Richard's Walks"
+        PRODUCT_BUNDLE_IDENTIFIER: com.squirrelrock.laps
+        PRODUCT_NAME: laps
+        INFOPLIST_KEY_CFBundleDisplayName: laps
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
@@ -30,25 +30,25 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         ENABLE_PREVIEWS: YES
-  RichardsWalksTests:
+  lapsTests:
     type: bundle.unit-test
     platform: iOS
     sources:
-      - RichardsWalksTests
+      - lapsTests
     dependencies:
-      - target: RichardsWalks
+      - target: laps
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.squirrelrock.RichardsWalksTests
+        PRODUCT_BUNDLE_IDENTIFIER: com.squirrelrock.lapsTests
         GENERATE_INFOPLIST_FILE: YES
-        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/RichardsWalks.app/RichardsWalks"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/laps.app/laps"
         BUNDLE_LOADER: "$(TEST_HOST)"
 schemes:
-  RichardsWalks:
+  laps:
     build:
       targets:
-        RichardsWalks: all
-        RichardsWalksTests: [test]
+        laps: all
+        lapsTests: [test]
     test:
       targets:
-        - RichardsWalksTests
+        - lapsTests

@@ -14,7 +14,7 @@ struct RemindersView: View {
             if permission == .denied {
                 Section {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Notifications are turned off for Richard's Walks, so reminders can't appear.")
+                        Text("Notifications are turned off for laps, so reminders can't appear.")
                         Button("Open Settings") {
                             if let url = URL(string: UIApplication.openNotificationSettingsURLString) { openURL(url) }
                         }
