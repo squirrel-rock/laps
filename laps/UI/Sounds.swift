@@ -20,15 +20,25 @@ enum Sounds {
         }
     }
 
+    /// Loads every sound up front so even the first tap plays instantly.
+    static func preload() {
+        for effect in [SoundEffect.lapC, .lapE, .lapG, .set, .goal, .standup] { _ = player(for: effect) }
+    }
+
+    /// Never blocks: each sound has its own player, so notes can ring over each other.
     static func play(_ effect: SoundEffect, enabled: Bool) {
-        guard enabled else { return }
-        if players[effect] == nil,
-           let url = Bundle.main.url(forResource: effect.rawValue, withExtension: "wav") {
-            players[effect] = try? AVAudioPlayer(contentsOf: url)
-            players[effect]?.prepareToPlay()
-        }
-        players[effect]?.currentTime = 0
-        players[effect]?.play()
+        guard enabled, let p = player(for: effect) else { return }
+        p.currentTime = 0
+        p.play()
+    }
+
+    private static func player(for effect: SoundEffect) -> AVAudioPlayer? {
+        if let p = players[effect] { return p }
+        guard let url = Bundle.main.url(forResource: effect.rawValue, withExtension: "wav"),
+              let p = try? AVAudioPlayer(contentsOf: url) else { return nil }
+        p.prepareToPlay()
+        players[effect] = p
+        return p
     }
 
     /// Each set climbs C, E, G (tuning-fork tones). The 3rd lap's G leads into the

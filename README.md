@@ -12,7 +12,7 @@ A small, standalone iPhone app that helps Richard keep up his daily indoor walki
 - **Everyday:** "Walked to the car" or a custom note. Kept separate from laps.
 - **Reminders:** editable times (default 7:30 AM, 1:00 PM, 4:00 PM), pause for today, and a sounds on/off switch.
 
-Taps on the lap button within 2.5 seconds of each other count once, which helps with a hand tremor.
+Taps on the lap button within 0.6 seconds of each other count once, which helps with a hand tremor.
 After 9 laps, the rest of that day's reminders invite a bonus set. After 12, they stay quiet for the rest of the day.
 
 ## Build

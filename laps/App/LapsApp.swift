@@ -37,6 +37,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         UNUserNotificationCenter.current().delegate = self
         NotificationScheduler.registerCategories()
         Sounds.prepareSession()
+        Sounds.preload()
         return true
     }
 

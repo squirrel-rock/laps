@@ -9,8 +9,9 @@ struct TodayView: View {
     @State private var confirmUndo = false
     @State private var lapTick = 0
 
-    /// Taps closer together than this are treated as one (helps with a hand tremor).
-    private let doubleTapGuard: TimeInterval = 2.5
+    /// Taps closer together than this are treated as one, which catches an accidental
+    /// tremor double-tap but still lets him log laps quickly: tap, tap, tap.
+    private let doubleTapGuard: TimeInterval = 0.6
 
     #if DEBUG
     // Debug-only: `-scrollBottom YES` opens scrolled to the bottom (used for screenshots).
