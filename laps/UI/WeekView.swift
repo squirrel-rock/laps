@@ -21,9 +21,9 @@ struct WeekView: View {
                         what: "walking credits",
                         parts: { d in
                             let p = d.walkingParts
-                            return [(p.carWalks, Theme.turquoise), (p.laps, Theme.teal), (p.gold, Theme.warm)]
+                            return [(p.carWalks, Theme.carWalk), (p.laps, Theme.teal), (p.gold, Theme.warm)]
                         }),
-                    legend: [("Car walk", Theme.turquoise), ("Lap", Theme.teal), ("Gold bonus", Theme.warm)],
+                    legend: [("Car walk", Theme.carWalk), ("Lap", Theme.teal), ("Gold bonus", Theme.warm)],
                     goalText: "Goal: \(LapMath.dailyGoal)", goalColor: Theme.teal)
 
                 chartCard(
@@ -34,9 +34,9 @@ struct WeekView: View {
                         what: "times up",
                         parts: { d in
                             let p = d.standingParts(goal: goal)
-                            return [(p.lotion, Theme.rose), (p.violet, Theme.violet), (p.gold, Theme.warm)]
+                            return [(p.lotion, Theme.cream), (p.violet, Theme.violet), (p.gold, Theme.warm)]
                         }),
-                    legend: [("Face lotion", Theme.rose), ("Stood up", Theme.violet), ("Gold bonus", Theme.warm)],
+                    legend: [("Face lotion", Theme.cream), ("Stood up", Theme.violet), ("Gold bonus", Theme.warm)],
                     goalText: "Goal: \(goal)", goalColor: Theme.purple)
 
                 VStack(spacing: 0) {

@@ -155,7 +155,7 @@ struct ChoiceButtonStyle: ButtonStyle {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .strokeBorder(highlight ? Theme.rose : Theme.violet.opacity(0.45), lineWidth: highlight ? 3 : 2)
+                    .strokeBorder(highlight ? Theme.cream : Theme.violet.opacity(0.45), lineWidth: highlight ? 3 : 2)
             )
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .animation(.spring(response: 0.25, dampingFraction: 0.7), value: configuration.isPressed)
@@ -253,7 +253,7 @@ struct StandingUpCard: View {
                 // The face lotion starts the ring, like the car walk does for walking.
                 Circle()
                     .trim(from: 0, to: StandingMath.progress(1, goal: goal))
-                    .stroke(Theme.rose, style: StrokeStyle(lineWidth: 14, lineCap: .round))
+                    .stroke(Theme.cream, style: StrokeStyle(lineWidth: 14, lineCap: .round))
                     .rotationEffect(.degrees(-90))
             }
             if credits > goal {
@@ -306,7 +306,7 @@ struct StandingUpCard: View {
             HStack {
                 Label("Face lotion: done today", systemImage: "checkmark.circle.fill")
                     .font(.system(.title3, design: .rounded).weight(.semibold))
-                    .foregroundStyle(Theme.darkRose)
+                    .foregroundStyle(Theme.darkCream)
                 Spacer()
                 Button("Undo") { store.setLotionDone(false) }
                     .font(.system(.body, design: .rounded))
@@ -321,7 +321,7 @@ struct StandingUpCard: View {
             } label: {
                 Label("I put on my face lotion", systemImage: "face.smiling")
             }
-            .buttonStyle(SecondaryButtonStyle(minHeight: 64, text: Theme.darkRose, fill: Theme.lightRose))
+            .buttonStyle(SecondaryButtonStyle(minHeight: 64, text: Theme.darkCream, fill: Theme.lightCream))
             .accessibilityHint("Counts as one time standing up")
         }
     }
@@ -356,7 +356,7 @@ struct StandingUpCard: View {
     }
 }
 
-/// One rose pill for the face lotion (once it's done), violet pills up to the goal in
+/// One cream pill for the face lotion (once it's done), violet pills up to the goal in
 /// groups of 5, then gold pills for every extra time up.
 struct StandingPills: View {
     let credits: Int
@@ -374,9 +374,9 @@ struct StandingPills: View {
 
         FlowLayout(spacing: 10) {
             if lotionDone {
-                pill(filled: true, color: Theme.rose)
+                pill(filled: true, color: Theme.cream)
                     .padding(6)
-                    .background(Capsule().fill(Theme.lightRose))
+                    .background(Capsule().fill(Theme.lightCream))
                     .transition(pop)
             }
             ForEach(groups.indices, id: \.self) { g in

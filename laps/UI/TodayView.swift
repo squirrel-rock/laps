@@ -268,7 +268,7 @@ struct TodayProgressCard: View {
                 if carWalks > 0 {
                     Circle()
                         .trim(from: 0, to: min(1, Double(carWalks) / goal))
-                        .stroke(Theme.turquoise, style: StrokeStyle(lineWidth: 18, lineCap: .round))
+                        .stroke(Theme.carWalk, style: StrokeStyle(lineWidth: 18, lineCap: .round))
                         .rotationEffect(.degrees(-90))
                 }
                 goldRing
@@ -383,7 +383,7 @@ struct SetDots: View {
             if carWalks > 0 {
                 HStack(spacing: 5) {
                     ForEach(0..<carWalks, id: \.self) { _ in
-                        dot(filled: true, color: Theme.turquoise)
+                        dot(filled: true, color: Theme.carWalk)
                             .transition(pop)
                     }
                 }

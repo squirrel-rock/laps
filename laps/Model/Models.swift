@@ -192,7 +192,7 @@ struct WeekDay: Equatable {
         return (carWalks, teal, laps - teal)
     }
 
-    /// Standing bar from the bottom: lotion (rose), times up to the goal (violet), then gold.
+    /// Standing bar from the bottom: lotion (cream), times up to the goal (violet), then gold.
     func standingParts(goal: Int) -> (lotion: Int, violet: Int, gold: Int) {
         let l = lotion ? 1 : 0
         let others = standing - l

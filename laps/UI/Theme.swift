@@ -12,18 +12,21 @@ enum Theme {
     static let warm = dynamic(light: 0xE9A23B, dark: 0xF2B65A)   // celebration accent, never a warning
     /// Car walks: bluer and brighter than the lap teal, same family.
     static let turquoise = dynamic(light: 0x1A9CC2, dark: 0x1A9CC2)
+    /// Car walks in the ring, dots and chart: a lighter turquoise under the deep teal,
+    /// like the cream under the purple. (The button keeps the deeper one for white text.)
+    static let carWalk = dynamic(light: 0x5CC3E0, dark: 0x5CC3E0)
     static let darkTurquoise = dynamic(light: 0x13728F, dark: 0x7ACDE6)
     static let lightTurquoise = dynamic(light: 0xDCF0F7, dark: 0x173440)
-    /// Standing up: the button purple matches the lap teal's visual weight (white text ≈ 5:1).
-    static let purple = dynamic(light: 0x7E5BC7, dark: 0x7E5BC7)
-    static let darkPurple = dynamic(light: 0x5A3E9A, dark: 0xC9B5F2)
-    /// Lighter violet for the pills and ring.
-    static let violet = dynamic(light: 0x9F7FE0, dark: 0xA98BE6)
-    static let lightViolet = dynamic(light: 0xEEE8FA, dark: 0x2A2340)
-    /// The face lotion pill: the daily one, like the car walk is for walking.
-    static let rose = dynamic(light: 0xE07A9B, dark: 0xE88BA8)
-    static let lightRose = dynamic(light: 0xFBE6EE, dark: 0x3A2430)
-    static let darkRose = dynamic(light: 0xA8456A, dark: 0xF2A9C0)
+    /// Standing up: a deep purple with the same weight as the lap teal, the same in both modes.
+    static let purple = dynamic(light: 0x6A3FCF, dark: 0x6A3FCF)
+    static let darkPurple = dynamic(light: 0x4F2D9E, dark: 0xC4ADF5)
+    /// The ring, pills and chart bars: rich enough to hold up on a black screen.
+    static let violet = dynamic(light: 0x7A4BDD, dark: 0x7A4BDD)
+    static let lightViolet = dynamic(light: 0xECE5FA, dark: 0x2A2240)
+    /// The face lotion: creamy, like the lotion itself. Caramel on white so it still shows.
+    static let cream = dynamic(light: 0xD8BD8A, dark: 0xF0E4CA)
+    static let lightCream = dynamic(light: 0xF7F0E2, dark: 0x37322A)
+    static let darkCream = dynamic(light: 0x7A6235, dark: 0xF0E4CA)
 
     static func dynamic(light: UInt32, dark: UInt32) -> Color {
         Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(hex: dark) : UIColor(hex: light) })
