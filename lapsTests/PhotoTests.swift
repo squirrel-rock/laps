@@ -104,4 +104,119 @@ final class PhotoTests: XCTestCase {
         XCTAssertTrue(PictureSettings.grid(tiles: 20) == (4, 5))
         XCTAssertTrue(PictureSettings.grid(tiles: 25) == (5, 5))
     }
+
+    // MARK: - The daily picture
+
+    func testDeterminedNeedsTenWalkingAndGoldLapsCount() {
+        func d(_ w: Int, _ s: Int, _ t: Int = 20) -> Int { PictureMath.revealed(walking: w, standing: s, tiles: t, mode: .determined) }
+        XCTAssertEqual(d(5, 12), 15)          // standing fills at most 10 of 20
+        XCTAssertEqual(d(10, 10), 20)
+        XCTAssertEqual(d(13, 7), 20)          // gold laps mean fewer times up
+        XCTAssertEqual(d(9, 30), 19)          // can't finish without 10 walking
+        XCTAssertEqual(d(10, 6, 16), 16)
+        XCTAssertEqual(d(10, 14, 25), 24)
+        XCTAssertEqual(d(0, 0), 0)
+    }
+
+    func testFlexibleCountsAnyMix() {
+        XCTAssertEqual(PictureMath.revealed(walking: 5, standing: 12, tiles: 20, mode: .flexible), 17)
+        XCTAssertEqual(PictureMath.revealed(walking: 0, standing: 30, tiles: 16, mode: .flexible), 16)
+    }
+
+    func testStatusSaysWhenOnlyWalkingIsLeft() {
+        XCTAssertEqual(PictureMath.status(walking: 7, standing: 10, tiles: 20, mode: .determined),
+                       "17 of 20 uncovered. 3 more walks to go.")
+        XCTAssertEqual(PictureMath.status(walking: 7, standing: 4, tiles: 20, mode: .determined),
+                       "11 of 20 uncovered. 9 to go.")
+        XCTAssertEqual(PictureMath.status(walking: 10, standing: 10, tiles: 20, mode: .determined),
+                       "All 20 uncovered. Beautiful!")
+    }
+
+    func testRevealOrderIsScatteredButSameAllDay() {
+        let a = PictureMath.order(tiles: 20, seed: "2026-11-25-x")
+        XCTAssertEqual(Set(a), Set(0..<20))
+        XCTAssertEqual(a, PictureMath.order(tiles: 20, seed: "2026-11-25-x"))
+        XCTAssertNotEqual(a, Array(0..<20))
+        XCTAssertNotEqual(a, PictureMath.order(tiles: 20, seed: "2026-11-26-x"))
+    }
+
+    func testEachDayGetsTheNextPhotoWithoutRepeats() async {
+        let photos = PhotoStore(folder: folder)
+        let ids = await photos.add((0..<3).map { _ in photoData(width: 400, height: 500) })
+        photos.setExcluded(true, for: ids[1])
+
+        let days = ["2026-11-25", "2026-11-26", "2026-11-27", "2026-11-28"]
+        let picked = days.map { day -> UUID? in
+            let p = photos.pictureForToday(day)
+            photos.sync(day: day, walking: 20, standing: 20)   // finish each day
+            return p?.photoID
+        }
+        // Skipped photo left out; a new round starts after both have had a turn.
+        XCTAssertEqual(picked, [ids[0], ids[2], ids[0], ids[2]])
+        XCTAssertEqual(photos.pictureForToday(days[0])?.photoID, ids[0])   // same photo all day
+    }
+
+    func testUnfinishedPictureComesBackLater() async {
+        let photos = PhotoStore(folder: folder)
+        let ids = await photos.add((0..<3).map { _ in photoData(width: 400, height: 500) })
+        photos.sync(day: "2026-11-25", walking: 3, standing: 0)              // not finished
+        photos.sync(day: "2026-11-26", walking: 20, standing: 20)
+        photos.sync(day: "2026-11-27", walking: 20, standing: 20)
+        let p = photos.pictureForToday("2026-11-28")
+        XCTAssertEqual(p?.photoID, ids[0])
+    }
+
+    func testFinishingSavesToGalleryAndRaisingTheChallengeKeepsIt() async {
+        let photos = PhotoStore(folder: folder)
+        let ids = await photos.add([photoData(width: 400, height: 500)])
+        let day = "2026-11-25"
+        photos.updateSettings { $0.tiles = 16 }
+        photos.sync(day: day, walking: 10, standing: 6)
+        XCTAssertEqual(photos.picture(for: day)?.completedTiles, 16)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: photos.galleryURL(day, .picture).path))
+
+        // Raised to 20: the picture shows tiles again, but the gallery keeps the 16.
+        photos.updateSettings { $0.tiles = 20 }
+        photos.sync(day: day, walking: 10, standing: 6)
+        XCTAssertEqual(photos.revealedCount(walking: 10, standing: 6), 16)
+        XCTAssertEqual(photos.picture(for: day)?.completedTiles, 16)
+
+        // Reaching 20 records the higher level.
+        photos.sync(day: day, walking: 10, standing: 10)
+        XCTAssertEqual(photos.picture(for: day)?.completedTiles, 20)
+
+        // Removing the photo from the collection leaves the gallery copy.
+        photos.delete(ids[0])
+        XCTAssertNotNil(photos.dayImage(photos.picture(for: day)!))
+    }
+
+    func testUndoBelowTheFinishTakesItBack() async {
+        let photos = PhotoStore(folder: folder)
+        await photos.add([photoData(width: 400, height: 500)])
+        let day = "2026-11-25"
+        photos.sync(day: day, walking: 10, standing: 10)
+        XCTAssertNotNil(photos.picture(for: day)?.completedTiles)
+        photos.sync(day: day, walking: 9, standing: 10)                    // a mistaken lap undone
+        XCTAssertNil(photos.picture(for: day)?.completedTiles)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: photos.galleryURL(day, .picture).path))
+    }
+
+    func testChangingThePictureNeverTouchesActivity() async {
+        let walks = WalkStore(fileURL: folder.appendingPathComponent("walks.json"))
+        walks.recordLap()
+        let before = walks.walkingCreditsToday
+        let photos = PhotoStore(folder: folder)
+        await photos.add([photoData(width: 400, height: 500)])
+        photos.updateSettings { $0.tiles = 25; $0.mode = .flexible }
+        photos.sync(day: walks.todayKey, walking: walks.walkingCreditsToday, standing: walks.standingCreditsToday)
+        XCTAssertEqual(walks.walkingCreditsToday, before)
+    }
+
+    func testNoPictureWhenOffOrEmpty() async {
+        let photos = PhotoStore(folder: folder)
+        XCTAssertNil(photos.pictureForToday("2026-11-25"))
+        await photos.add([photoData(width: 400, height: 500)])
+        photos.updateSettings { $0.isOn = false }
+        XCTAssertNil(photos.pictureForToday("2026-11-25"))
+    }
 }

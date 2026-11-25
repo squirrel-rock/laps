@@ -28,6 +28,9 @@ enum Theme {
     static let lightCream = dynamic(light: 0xF7F0E2, dark: 0x37322A)
     static let darkCream = dynamic(light: 0x7A6235, dark: 0xF0E4CA)
 
+    /// The still-hidden tiles of the daily picture: a step lighter than the black background.
+    static let tileCover = dynamic(light: 0xE4DED3, dark: 0x343C3B)
+
     static func dynamic(light: UInt32, dark: UInt32) -> Color {
         Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(hex: dark) : UIColor(hex: light) })
     }

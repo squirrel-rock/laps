@@ -146,6 +146,125 @@ final class PhotoStore {
         save()
     }
 
+    // MARK: - The daily picture
+
+    /// What happened on the most recent sync, for the reveal animation.
+    struct Reveal: Equatable {
+        var day: String
+        var count: Int
+        var tiles: Int
+        var at: Date
+    }
+    private(set) var lastReveal: Reveal?
+
+    func picture(for day: String) -> DailyPicture? { data.days[day] }
+
+    /// Today's picture, choosing one if the day doesn't have one yet.
+    /// Returns nil when the reward is off or there are no photos to use.
+    @discardableResult
+    func pictureForToday(_ day: String) -> DailyPicture? {
+        guard data.settings.isOn else { return nil }
+        // Keep today's picture, unless its photo was removed before he finished it.
+        if let p = data.days[day], p.isComplete || photo(p.photoID) != nil { return p }
+        guard let id = nextPhotoID(for: day) else { return nil }
+        let p = DailyPicture(day: day, photoID: id)
+        data.days[day] = p
+        save()
+        return p
+    }
+
+    /// The next photo in the rotation. Unfinished pictures from earlier days go to the back of the line,
+    /// and nothing repeats until every photo in use has had its turn.
+    private func nextPhotoID(for day: String) -> UUID? {
+        let usable = Set(activePhotos.map(\.id))
+        guard !usable.isEmpty else { return nil }
+
+        for key in data.days.keys.sorted() where key < day {
+            guard var p = data.days[key], !p.isComplete, !p.returned else { continue }
+            p.returned = true
+            data.days[key] = p
+            if !data.upcoming.contains(p.photoID) { data.upcoming.append(p.photoID) }
+        }
+
+        let inCollection = Set(data.photos.map(\.id))
+        data.upcoming.removeAll { !inCollection.contains($0) }   // removed from the collection
+        if let i = data.upcoming.firstIndex(where: { usable.contains($0) }) {
+            return data.upcoming.remove(at: i)
+        }
+
+        // Everyone's had a turn: start a new round, not starting with yesterday's photo.
+        var round = activePhotos.map(\.id)
+        if data.settings.order == .shuffled {
+            var rng = SeededRandom(seed: "round-\(day)")
+            round.shuffle(using: &rng)
+        }
+        let last = data.days.keys.filter { $0 < day }.max().flatMap { data.days[$0]?.photoID }
+        if round.count > 1, round.first == last { round.append(round.removeFirst()) }
+        data.upcoming = Array(round.dropFirst())
+        return round.first
+    }
+
+    /// Brings today's picture up to date with his activity. Finishing a picture saves a copy
+    /// to the gallery. Raising the challenge afterwards leaves that copy alone; only a real
+    /// correction (an undo that drops below what finished it) takes it back.
+    func sync(day: String, walking: Int, standing: Int) {
+        guard data.settings.isOn, var p = pictureForToday(day) else { return }
+        let s = data.settings
+        let shown = PictureMath.revealed(walking: walking, standing: standing, tiles: s.tiles, mode: s.mode)
+
+        if shown >= s.tiles {
+            if (p.completedTiles ?? 0) < s.tiles {
+                p.completedTiles = s.tiles
+                p.completedMode = s.mode
+                p.completedAt = Date()
+                copyToGallery(p)
+            }
+        } else if let done = p.completedTiles, let mode = p.completedMode,
+                  PictureMath.revealed(walking: walking, standing: standing, tiles: done, mode: mode) < done {
+            p.completedTiles = nil
+            p.completedMode = nil
+            p.completedAt = nil
+            try? FileManager.default.removeItem(at: galleryURL(day, .picture))
+            try? FileManager.default.removeItem(at: galleryURL(day, .thumb))
+        }
+        if data.days[day] != p { data.days[day] = p; save() }
+
+        let reveal = Reveal(day: day, count: shown, tiles: s.tiles, at: Date())
+        if lastReveal?.day != reveal.day || lastReveal?.count != shown || lastReveal?.tiles != s.tiles {
+            lastReveal = reveal
+        }
+    }
+
+    /// Tiles uncovered right now for today's picture.
+    func revealedCount(walking: Int, standing: Int) -> Int {
+        let s = data.settings
+        return PictureMath.revealed(walking: walking, standing: standing, tiles: s.tiles, mode: s.mode)
+    }
+
+    // MARK: - Gallery copies
+
+    nonisolated func galleryURL(_ day: String, _ kind: Kind) -> URL {
+        folder.appendingPathComponent("Gallery", isDirectory: true)
+            .appendingPathComponent("\(day)-\(kind.rawValue).jpg")
+    }
+
+    /// Finished pictures keep their own copy, so removing the photo from the collection never removes it here.
+    private func copyToGallery(_ p: DailyPicture) {
+        let fm = FileManager.default
+        try? fm.createDirectory(at: galleryURL(p.day, .picture).deletingLastPathComponent(), withIntermediateDirectories: true)
+        for kind in [Kind.picture, .thumb] {
+            let to = galleryURL(p.day, kind)
+            try? fm.removeItem(at: to)
+            try? fm.copyItem(at: url(for: p.photoID, kind), to: to)
+        }
+    }
+
+    /// The day's picture: the gallery copy once finished, otherwise the collection's.
+    func dayImage(_ p: DailyPicture, _ kind: Kind = .picture) -> UIImage? {
+        if p.isComplete, let img = UIImage(contentsOfFile: galleryURL(p.day, kind).path) { return img }
+        return image(for: p.photoID, kind)
+    }
+
     // MARK: - Saving
 
     private func save() {

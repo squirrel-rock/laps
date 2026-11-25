@@ -211,7 +211,7 @@ struct TodayView: View {
         Sounds.playLap(total: total, carWalks: carWalks, enabled: store.settings.soundOn)
         if moment.isBig { Haptics.celebrate() }
         show(Celebration(moment: moment, message: LapMath.message(afterLap: total, carWalks: carWalks),
-                         icon: moment == .lucky ? "sparkles" : nil))
+                         icon: moment == .lucky ? "sparkles" : nil, reveal: true))
     }
 
     private func show(_ c: Celebration) {
@@ -480,6 +480,8 @@ struct Celebration: Equatable {
     let moment: LapMath.Moment
     let message: String
     var icon: String?
+    /// Shows today's picture in the banner, with the newly uncovered tile appearing.
+    var reveal = false
 }
 
 struct CelebrationBanner: View {
@@ -513,6 +515,7 @@ struct CelebrationBanner: View {
                 .foregroundStyle(.white)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
+            if celebration.reveal { BannerPicture() }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, big ? 22 : 16)
@@ -523,6 +526,24 @@ struct CelebrationBanner: View {
         .onAppear {
             withAnimation(.easeOut(duration: 0.9)) { burst = true }
             UIAccessibility.post(notification: .announcement, argument: celebration.message)
+        }
+    }
+}
+
+/// A small copy of today's picture in the celebration banner. It starts at the count before
+/// this credit, then the new tile fades in once the picture catches up.
+private struct BannerPicture: View {
+    @Environment(WalkStore.self) private var store
+    @Environment(PhotoStore.self) private var photos
+
+    var body: some View {
+        let s = photos.settings
+        if s.isOn, let p = photos.picture(for: store.todayKey), let r = photos.lastReveal, r.day == p.day {
+            TilePicture(image: photos.dayImage(p, .thumb), tiles: s.tiles, revealed: r.count,
+                        order: PictureMath.order(tiles: s.tiles, seed: "\(p.day)-\(p.photoID)"))
+                .frame(width: 60)
+                .shadow(color: .black.opacity(0.25), radius: 4, y: 2)
+                .accessibilityHidden(true)
         }
     }
 }

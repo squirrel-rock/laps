@@ -84,6 +84,10 @@ struct DailyPicture: Codable, Hashable {
     var completedTiles: Int?
     var completedMode: RewardMode?
     var completedAt: Date?
+    /// An unfinished picture goes back into the rotation once, after its day.
+    var returned = false
+
+    var isComplete: Bool { completedTiles != nil }
 }
 
 struct PhotoData: Codable {
@@ -115,5 +119,17 @@ extension PhotoData {
         settings = try c.decodeIfPresent(PictureSettings.self, forKey: .settings) ?? PictureSettings()
         upcoming = try c.decodeIfPresent([UUID].self, forKey: .upcoming) ?? []
         days = try c.decodeIfPresent([String: DailyPicture].self, forKey: .days) ?? [:]
+    }
+}
+
+extension DailyPicture {
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        day = try c.decode(String.self, forKey: .day)
+        photoID = try c.decode(UUID.self, forKey: .photoID)
+        completedTiles = try c.decodeIfPresent(Int.self, forKey: .completedTiles)
+        completedMode = try c.decodeIfPresent(RewardMode.self, forKey: .completedMode)
+        completedAt = try c.decodeIfPresent(Date.self, forKey: .completedAt)
+        returned = try c.decodeIfPresent(Bool.self, forKey: .returned) ?? false
     }
 }

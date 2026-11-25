@@ -352,7 +352,7 @@ struct StandingUpCard: View {
         if moment == .goal { Haptics.celebrate() }
         celebrate(Celebration(moment: moment == .goal ? .goal : .lap,
                               message: StandingMath.message(after: credits, goal: goal),
-                              icon: moment == .goal ? nil : "figure.stand"))
+                              icon: moment == .goal ? nil : "figure.stand", reveal: true))
     }
 }
 

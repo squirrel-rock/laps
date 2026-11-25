@@ -10,6 +10,7 @@
 		01A36E946D652A178BB5E730 /* PhotoCropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A465FA54F6FDD88195C1F48 /* PhotoCropView.swift */; };
 		10ACB78BA35C7859B5DB257E /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67AD760036C8739C5FC89366 /* NotificationScheduler.swift */; };
 		16874861471FB695A66D710D /* lapE.wav in Resources */ = {isa = PBXBuildFile; fileRef = 5665E3D532A618C4BF148B30 /* lapE.wav */; };
+		180C2E582C6E97485FFE4C38 /* PictureMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = A67B629EB660E9CA64F708D0 /* PictureMath.swift */; };
 		1C404E78CB2625CCA6F4F079 /* standup.wav in Resources */ = {isa = PBXBuildFile; fileRef = 86EF1C79D6C8BF72A60D78D3 /* standup.wav */; };
 		1C78F89A70813C64A2BC6744 /* PhotoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16FAFF2943F8077098AE3D05 /* PhotoTests.swift */; };
 		1EB9E6D44323AB98C1CC9B55 /* lapC.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1DA8E52E8B871B9207C9BB2C /* lapC.wav */; };
@@ -34,6 +35,7 @@
 		BB871ACC1D8D6E3CA6C1E7A6 /* lapsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACC70487C43145E7823B0FB0 /* lapsTests.swift */; };
 		BEFA719BCDA503D88615AB3F /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7985CBA6CA5F24FC53A8E8C0 /* Models.swift */; };
 		C7AC29EF7569C3A0CA40F77C /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09F6A28BA2BD599854FE9C05 /* RootView.swift */; };
+		D5491986876D7098F1AD0E32 /* PictureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B9A7B807229C83A60BA1EF /* PictureView.swift */; };
 		DD8D59FBBBF7AC3BE8231FA4 /* DayKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B404B6CAF3EA2E01C7FBD7 /* DayKey.swift */; };
 		E04DCE682096A2237755914E /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7350DFB441E4A25884D2CF42 /* TodayView.swift */; };
 		EBAFEF6F9D6DED34E65CF14D /* RemindersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 942BED155990172B8BF03287 /* RemindersView.swift */; };
@@ -78,7 +80,9 @@
 		97C806E27C1F932C10E339DB /* lapG.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = lapG.wav; sourceTree = "<group>"; };
 		9B9B3B1321C5BB75F34B8B9D /* StandUpViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandUpViews.swift; sourceTree = "<group>"; };
 		9FD4D3D2AFAEDF1DC645EAAE /* WeekView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekView.swift; sourceTree = "<group>"; };
+		A1B9A7B807229C83A60BA1EF /* PictureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PictureView.swift; sourceTree = "<group>"; };
 		A5066DC84F4707593D0EFE25 /* EverydayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EverydayView.swift; sourceTree = "<group>"; };
+		A67B629EB660E9CA64F708D0 /* PictureMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PictureMath.swift; sourceTree = "<group>"; };
 		ACC70487C43145E7823B0FB0 /* lapsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = lapsTests.swift; sourceTree = "<group>"; };
 		AE4CC4D721015665DE79E384 /* StandingMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandingMath.swift; sourceTree = "<group>"; };
 		B4B404B6CAF3EA2E01C7FBD7 /* DayKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayKey.swift; sourceTree = "<group>"; };
@@ -161,6 +165,7 @@
 				21D5C29DC3B333A7A1C6FF20 /* Haptics.swift */,
 				6A465FA54F6FDD88195C1F48 /* PhotoCropView.swift */,
 				7B84224D5DA48D4F9E057AA3 /* PhotoLibraryView.swift */,
+				A1B9A7B807229C83A60BA1EF /* PictureView.swift */,
 				942BED155990172B8BF03287 /* RemindersView.swift */,
 				09F6A28BA2BD599854FE9C05 /* RootView.swift */,
 				8E6C2F865EA4DD3E310A0CEE /* Sounds.swift */,
@@ -181,6 +186,7 @@
 				7985CBA6CA5F24FC53A8E8C0 /* Models.swift */,
 				1D4313F3AF2DAC09791D591C /* PhotoModels.swift */,
 				5B164FDC666B6FA23752C1E9 /* PhotoStore.swift */,
+				A67B629EB660E9CA64F708D0 /* PictureMath.swift */,
 				AE4CC4D721015665DE79E384 /* StandingMath.swift */,
 				8D227490BE35FB10439EFA76 /* StandUps.swift */,
 				7F244F8EEB7AF0FF885443E4 /* WalkStore.swift */,
@@ -309,6 +315,8 @@
 				65A692DFCBC03EA1F83B58A2 /* PhotoLibraryView.swift in Sources */,
 				408E5A19AB0EDBAFD5D9AC21 /* PhotoModels.swift in Sources */,
 				4A525E0B0C6F8E4B72A8F41D /* PhotoStore.swift in Sources */,
+				180C2E582C6E97485FFE4C38 /* PictureMath.swift in Sources */,
+				D5491986876D7098F1AD0E32 /* PictureView.swift in Sources */,
 				FE5AE8DD270FC35B38C9A7FA /* ReminderPlanner.swift in Sources */,
 				EBAFEF6F9D6DED34E65CF14D /* RemindersView.swift in Sources */,
 				C7AC29EF7569C3A0CA40F77C /* RootView.swift in Sources */,
