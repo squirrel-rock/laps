@@ -14,6 +14,16 @@ enum Theme {
     static let turquoise = dynamic(light: 0x1A9CC2, dark: 0x1A9CC2)
     static let darkTurquoise = dynamic(light: 0x13728F, dark: 0x7ACDE6)
     static let lightTurquoise = dynamic(light: 0xDCF0F7, dark: 0x173440)
+    /// Standing up: the button purple matches the lap teal's visual weight (white text ≈ 5:1).
+    static let purple = dynamic(light: 0x7E5BC7, dark: 0x7E5BC7)
+    static let darkPurple = dynamic(light: 0x5A3E9A, dark: 0xC9B5F2)
+    /// Lighter violet for the pills and ring.
+    static let violet = dynamic(light: 0x9F7FE0, dark: 0xA98BE6)
+    static let lightViolet = dynamic(light: 0xEEE8FA, dark: 0x2A2340)
+    /// The face lotion pill: the daily one, like the car walk is for walking.
+    static let rose = dynamic(light: 0xE07A9B, dark: 0xE88BA8)
+    static let lightRose = dynamic(light: 0xFBE6EE, dark: 0x3A2430)
+    static let darkRose = dynamic(light: 0xA8456A, dark: 0xF2A9C0)
 
     static func dynamic(light: UInt32, dark: UInt32) -> Color {
         Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(hex: dark) : UIColor(hex: light) })
@@ -55,17 +65,19 @@ struct PrimaryButtonStyle: ButtonStyle {
 /// Quieter, still-large button for secondary actions.
 struct SecondaryButtonStyle: ButtonStyle {
     var minHeight: CGFloat = 72
+    var text: Color = Theme.darkTeal
+    var fill: Color = Theme.lightTeal
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(.title3, design: .rounded).weight(.semibold))
-            .foregroundStyle(Theme.darkTeal)
+            .foregroundStyle(text)
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity, minHeight: minHeight)
             .padding(.horizontal, 12)
             .background(
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .fill(Theme.lightTeal)
+                    .fill(fill)
             )
             .opacity(configuration.isPressed ? 0.75 : 1)
             .scaleEffect(configuration.isPressed ? 0.98 : 1)

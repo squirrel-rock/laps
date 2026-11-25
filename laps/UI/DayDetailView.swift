@@ -62,7 +62,7 @@ struct DayDetailView: View {
             }
 
             if !day.standUps.isEmpty || day.lotionDoneAt != nil {
-                Section("Stand-ups") {
+                Section("Standing up") {
                     if let lotion = day.lotionDoneAt {
                         Label("Face lotion at \(lotion.formatted(date: .omitted, time: .shortened))",
                               systemImage: "checkmark.circle.fill")

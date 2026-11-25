@@ -279,6 +279,49 @@ final class WalkStoreTests: XCTestCase {
         XCTAssertFalse(scheduler.last.contains { $0.id.contains(store.todayKey) && $0.choiceIDs.contains("lotion") })
     }
 
+    func testStandingCreditsCountQuickStandsIdeasAndLotionOnce() {
+        let store = makeStore()
+        store.recordStoodUp()
+        store.recordStoodUp()   // honor system: no minimum gap between recordings
+        XCTAssertEqual(store.standingCreditsToday, 2)
+        store.pickStandUp(StandUps.lotion)
+        store.completeStandUp()
+        store.setLotionDone(true)   // ticking it again doesn't double-count
+        XCTAssertEqual(store.standingCreditsToday, 3)
+        store.pickStandUp(StandUps.spin)
+        XCTAssertEqual(store.standingCreditsToday, 3, "Picked but not done yet")
+        XCTAssertEqual(store.completeStandUp(), 4)
+        store.setLotionDone(false)
+        XCTAssertEqual(store.standingCreditsToday, 3)
+        XCTAssertEqual(store.lapsToday, 0)
+        XCTAssertEqual(store.walkingCreditsToday, 0, "Standing never counts toward walking")
+    }
+
+    func testQuickStandCanBeUndone() {
+        let store = makeStore()
+        let entry = store.recordStoodUp()
+        store.deleteStandUp(entry.id, on: store.todayKey)
+        XCTAssertEqual(store.standingCreditsToday, 0)
+    }
+
+    func testStandingGoalIsAdjustableAndSaved() {
+        let store = makeStore()
+        XCTAssertEqual(store.standingGoal, 10)
+        store.setStandingGoal(12)
+        XCTAssertEqual(makeStore().standingGoal, 12)
+        store.setStandingGoal(99)
+        XCTAssertEqual(store.standingGoal, 20, "Kept within range")
+    }
+
+    func testStandingPillGroupsAndWording() {
+        XCTAssertEqual(StandingMath.goalGroups(goal: 10, lotionDone: false), [5, 5])
+        XCTAssertEqual(StandingMath.goalGroups(goal: 10, lotionDone: true), [5, 4])
+        XCTAssertEqual(StandingMath.statusLine(7, goal: 10), "3 more times up to today's goal")
+        XCTAssertEqual(StandingMath.moment(after: 10, goal: 10), .goal)
+        XCTAssertEqual(StandingMath.moment(after: 11, goal: 10), .bonus)
+        XCTAssertEqual(StandingMath.statusLine(12, goal: 10), "2 gold bonuses. Wonderful!")
+    }
+
     func testNewPickReplacesUnfinishedOne() {
         let store = makeStore()
         store.pickStandUp(StandUps.spin)

@@ -12,8 +12,11 @@ struct StandUpChoice: Hashable, Identifiable {
     let icon: String
 }
 
-/// The three-way choice offered at each stand-up. Every choice requires standing up.
+/// The three-way choice offered when it's time to stand up. Every choice requires standing.
 enum StandUps {
+    /// Choice ID used for a quick "I stood up" with no suggestion.
+    static let stoodID = "stood"
+
     static let spin = StandUpChoice(
         id: "spin", kind: .spin,
         title: "Take a spin around the living room",
@@ -44,9 +47,10 @@ enum StandUps {
         .init(id: "fire", kind: .fun, title: "Go see if the fire needs another piece of wood", short: "checking the fire", icon: "flame.fill"),
         .init(id: "water", kind: .fun, title: "Walk to the kitchen and refill your water glass", short: "a fresh glass of water", icon: "waterbottle.fill"),
         .init(id: "tidy", kind: .fun, title: "Put one thing back where it belongs", short: "putting one thing away", icon: "archivebox.fill"),
+        .init(id: "raingauge", kind: .fun, title: "Go check the rain gauge", short: "a rain gauge check", icon: "cloud.rain.fill"),
     ]
 
-    static let titles = ["Time to stand up, Richard!", "Up you get, Richard!", "Stand-up time!"]
+    static let titles = ["Time to stand up, Richard!", "Up you get, Richard!", "Time to get up and move!"]
 
     static func choice(id: String) -> StandUpChoice? {
         ([spin, lotion] + exercises + fun).first { $0.id == id }

@@ -27,7 +27,8 @@ struct WalkSession: Codable, Identifiable, Hashable {
     var breaks: Int
 }
 
-/// One stand-up: the choice Richard picked, and when he finished it.
+/// One time standing up: a suggestion Richard picked (and when he finished it), or a quick
+/// "I stood up" (choiceID "stood"), which is done the moment it's recorded.
 struct StandUpEntry: Codable, Identifiable, Hashable {
     var id = UUID()
     var picked: Date
@@ -51,6 +52,12 @@ struct DayRecord: Codable, Hashable {
     /// Laps plus car walks. The daily goal is 10.
     var walkingCredits: Int { lapCount + carWalks }
     var standUpsDone: Int { standUps.filter { $0.doneAt != nil }.count }
+    /// Standing-up credits: every finished stand-up, with the face lotion counted once
+    /// (whether it was picked as a suggestion or ticked off directly).
+    var standingCredits: Int {
+        standUps.filter { $0.doneAt != nil && $0.choiceID != StandUps.lotion.id }.count
+            + (lotionDoneAt != nil ? 1 : 0)
+    }
     var hasAnything: Bool {
         !laps.isEmpty || !everyday.isEmpty || !sessions.isEmpty || !standUps.isEmpty || lotionDoneAt != nil
     }
@@ -88,8 +95,12 @@ struct StandUpSettings: Codable, Hashable {
     var startMinute = 30
     var endHour = 20
     var endMinute = 0
-    /// Day key on which stand-up reminders were paused for the rest of the day.
+    /// Day key on which standing-up reminders were paused for the rest of the day.
     var pausedOn: String?
+    /// Daily standing-up goal, adjustable on the Reminders tab.
+    var goal = 10
+
+    static let goalRange = 5...20
 }
 
 struct Settings: Codable, Hashable {
@@ -137,6 +148,7 @@ extension StandUpSettings {
         endHour = try c.decodeIfPresent(Int.self, forKey: .endHour) ?? d.endHour
         endMinute = try c.decodeIfPresent(Int.self, forKey: .endMinute) ?? d.endMinute
         pausedOn = try c.decodeIfPresent(String.self, forKey: .pausedOn)
+        goal = try c.decodeIfPresent(Int.self, forKey: .goal) ?? d.goal
     }
 }
 

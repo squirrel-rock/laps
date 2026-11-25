@@ -59,7 +59,7 @@ struct RemindersView: View {
             } header: {
                 Text("Walk reminders")
             } footer: {
-                Text("Each reminder asks \"Time for a little walk?\" You can tap \"Remind me later\" right on the notification. Once you've done four sets in a day, the rest of that day's reminders stay quiet.")
+                Text("Each reminder asks \"Time for a little walk?\" You can tap \"Remind me later\" right on the notification. Once you reach 13 in a day, the rest of that day's reminders stay quiet.")
             }
 
             StandUpSettingsSection()
@@ -70,7 +70,7 @@ struct RemindersView: View {
                     set: { store.setSound($0) }))
                     .frame(minHeight: 48)
             } footer: {
-                Text("Cheerful sounds for laps, sets and stand-ups. They play even when the iPhone is on silent.")
+                Text("Cheerful sounds for laps, sets and standing up. They play even when the iPhone is on silent.")
             }
         }
         .font(.system(.body, design: .rounded))
@@ -131,6 +131,20 @@ struct StandUpSettingsSection: View {
         let settings = store.settings.standUp
 
         Section {
+            Stepper(value: Binding(get: { store.standingGoal }, set: { store.setStandingGoal($0) }),
+                    in: StandUpSettings.goalRange) {
+                Text("Daily goal: \(store.standingGoal) times")
+                    .font(.system(.body, design: .rounded).weight(.semibold))
+            }
+            .frame(minHeight: 56)
+            .accessibilityValue("\(store.standingGoal) times a day")
+        } header: {
+            Text("Standing up")
+        } footer: {
+            Text("Every time up counts: \"I stood up\", a finished idea, or the face lotion.")
+        }
+
+        Section {
             Toggle("Every half hour", isOn: binding(\.isOn))
                 .frame(minHeight: 48)
             if settings.isOn {
@@ -144,7 +158,7 @@ struct StandUpSettingsSection: View {
                     get: { store.standUpsPausedToday },
                     set: { store.setStandUpsPausedToday($0) })) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Pause stand-ups for today")
+                        Text("Pause standing-up reminders for today")
                         Text("They'll start again tomorrow.")
                             .font(.subheadline)
                             .foregroundStyle(Theme.secondaryText)
@@ -153,9 +167,9 @@ struct StandUpSettingsSection: View {
                 .frame(minHeight: 56)
             }
         } header: {
-            Text("Stand-up reminders")
+            Text("Standing-up reminders")
         } footer: {
-            Text("Each one offers three choices: a spin around the living room, an exercise, and something fun or useful. They wait while you're in the middle of a walk, and skip any time a walk reminder is due.")
+            Text("Each one offers three ideas: a spin around the living room, an exercise, and something fun or useful. They wait while you're in the middle of a walk, and skip any time a walk reminder is due.")
         }
     }
 

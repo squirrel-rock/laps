@@ -199,6 +199,8 @@ final class WalkStore {
     // MARK: - Stand-ups
 
     var standUpsDoneToday: Int { today.standUpsDone }
+    var standingCreditsToday: Int { today.standingCredits }
+    var standingGoal: Int { data.settings.standUp.goal }
     var lotionDoneToday: Bool { today.lotionDoneAt != nil }
     var standUpsPausedToday: Bool { data.settings.standUp.pausedOn == todayKey }
 
@@ -244,7 +246,23 @@ final class WalkStore {
             if wasLotion && day.lotionDoneAt == nil { day.lotionDoneAt = t }
         }
         save()
-        return standUpsDoneToday
+        return standingCreditsToday
+    }
+
+    /// "I stood up": records one standing-up credit right away, without a suggestion.
+    /// Returns the entry so it can be undone.
+    @discardableResult
+    func recordStoodUp() -> StandUpEntry {
+        let t = now()
+        let entry = StandUpEntry(picked: t, choiceID: StandUps.stoodID, title: "Stood up", doneAt: t)
+        mutateDay(todayKey) { $0.standUps.append(entry) }
+        save()
+        return entry
+    }
+
+    func setStandingGoal(_ goal: Int) {
+        data.settings.standUp.goal = min(StandUpSettings.goalRange.upperBound, max(StandUpSettings.goalRange.lowerBound, goal))
+        save()
     }
 
     func skipPendingStandUp() {

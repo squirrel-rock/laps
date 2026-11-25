@@ -18,6 +18,7 @@
 		6D0ED5EC6C13236FDD700229 /* Sounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E6C2F865EA4DD3E310A0CEE /* Sounds.swift */; };
 		6FFCD7D6BE548A2D57AF56B4 /* DayDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69F1E91943E098557FE6E8D9 /* DayDetailView.swift */; };
 		7286A9CAA627A66557B0B610 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5395D45368020C0A2B81885C /* Theme.swift */; };
+		7A543F0349F216A93DFFCBD9 /* StandingMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4CC4D721015665DE79E384 /* StandingMath.swift */; };
 		854E5A501E5D2D83C22E4061 /* EverydayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5066DC84F4707593D0EFE25 /* EverydayView.swift */; };
 		8F0A827C379AFBDEF0CCC67F /* lapG.wav in Resources */ = {isa = PBXBuildFile; fileRef = 97C806E27C1F932C10E339DB /* lapG.wav */; };
 		90A461BFD655BF8657DA3D78 /* WalkStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F244F8EEB7AF0FF885443E4 /* WalkStore.swift */; };
@@ -68,6 +69,7 @@
 		9FD4D3D2AFAEDF1DC645EAAE /* WeekView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekView.swift; sourceTree = "<group>"; };
 		A5066DC84F4707593D0EFE25 /* EverydayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EverydayView.swift; sourceTree = "<group>"; };
 		ACC70487C43145E7823B0FB0 /* lapsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = lapsTests.swift; sourceTree = "<group>"; };
+		AE4CC4D721015665DE79E384 /* StandingMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandingMath.swift; sourceTree = "<group>"; };
 		B4B404B6CAF3EA2E01C7FBD7 /* DayKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayKey.swift; sourceTree = "<group>"; };
 		C0FB2D3293D126013D1C9A81 /* LapMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LapMath.swift; sourceTree = "<group>"; };
 		DA965E6024F24FE0026E6E55 /* lapsTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = lapsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -161,6 +163,7 @@
 				B4B404B6CAF3EA2E01C7FBD7 /* DayKey.swift */,
 				C0FB2D3293D126013D1C9A81 /* LapMath.swift */,
 				7985CBA6CA5F24FC53A8E8C0 /* Models.swift */,
+				AE4CC4D721015665DE79E384 /* StandingMath.swift */,
 				8D227490BE35FB10439EFA76 /* StandUps.swift */,
 				7F244F8EEB7AF0FF885443E4 /* WalkStore.swift */,
 			);
@@ -289,6 +292,7 @@
 				6D0ED5EC6C13236FDD700229 /* Sounds.swift in Sources */,
 				48A959CA576DC7F1DF46771E /* StandUpViews.swift in Sources */,
 				AB02293D1B95F6C43E2F64F5 /* StandUps.swift in Sources */,
+				7A543F0349F216A93DFFCBD9 /* StandingMath.swift in Sources */,
 				7286A9CAA627A66557B0B610 /* Theme.swift in Sources */,
 				E04DCE682096A2237755914E /* TodayView.swift in Sources */,
 				90A461BFD655BF8657DA3D78 /* WalkStore.swift in Sources */,

@@ -56,7 +56,7 @@ struct TodayView: View {
                     .padding(.top, 4)
                 }
 
-                StandUpCard()
+                StandingUpCard(celebrate: show)
                     .padding(.top, 8)
             }
             .padding(.horizontal, 20)
