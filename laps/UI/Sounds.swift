@@ -10,11 +10,18 @@ enum SoundEffect: String {
 enum Sounds {
     private static var players: [SoundEffect: AVAudioPlayer] = [:]
 
+    /// Sets up audio once, off the main thread, so playing never stalls the screen.
+    /// `.playback` lets sounds play on silent; `.mixWithOthers` leaves music or radio playing.
+    nonisolated static func prepareSession() {
+        DispatchQueue.global(qos: .userInitiated).async {
+            let session = AVAudioSession.sharedInstance()
+            try? session.setCategory(.playback, options: [.mixWithOthers])
+            try? session.setActive(true)
+        }
+    }
+
     static func play(_ effect: SoundEffect, enabled: Bool) {
         guard enabled else { return }
-        let session = AVAudioSession.sharedInstance()
-        try? session.setCategory(.playback, options: [.mixWithOthers])
-        try? session.setActive(true)
         if players[effect] == nil,
            let url = Bundle.main.url(forResource: effect.rawValue, withExtension: "wav") {
             players[effect] = try? AVAudioPlayer(contentsOf: url)
