@@ -61,6 +61,29 @@ struct DayDetailView: View {
                 }
             }
 
+            if !day.standUps.isEmpty || day.lotionDoneAt != nil {
+                Section("Stand-ups") {
+                    if let lotion = day.lotionDoneAt {
+                        Label("Face lotion at \(lotion.formatted(date: .omitted, time: .shortened))",
+                              systemImage: "checkmark.circle.fill")
+                            .foregroundStyle(Theme.darkTeal)
+                    }
+                    ForEach(day.standUps.sorted { $0.picked < $1.picked }) { s in
+                        HStack {
+                            Text(s.title)
+                            Spacer()
+                            Text(s.doneAt.map { $0.formatted(date: .omitted, time: .shortened) } ?? "not done")
+                                .foregroundStyle(Theme.secondaryText)
+                        }
+                        .accessibilityElement(children: .combine)
+                    }
+                    .onDelete { offsets in
+                        let sorted = day.standUps.sorted { $0.picked < $1.picked }
+                        for i in offsets { store.deleteStandUp(sorted[i].id, on: dayKey) }
+                    }
+                }
+            }
+
             if !day.everyday.isEmpty {
                 Section("Everyday walking") {
                     ForEach(day.everyday.sorted { $0.time < $1.time }) { e in

@@ -2,7 +2,7 @@
 
 A small, standalone iPhone app that helps Richard keep up his daily indoor walking circuit.
 
-**One lap** = down the stairs (holding the handrail), back up, once around the living room.
+**One lap** = down the stairs (holding the handrail), back up. (The spin around the living room is now one of the stand-up choices.)
 **One set** = 3 laps. **Daily goal** = 3 sets (9 laps). **4 sets (12 laps)** is gently encouraged and never required.
 
 ## What it does

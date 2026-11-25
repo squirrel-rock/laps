@@ -8,6 +8,8 @@ final class WalkStore {
     private(set) var data: AppData
     /// Set when the saved file couldn't be read, so nothing gets silently overwritten.
     private(set) var loadProblem: String?
+    /// Stand-up choices waiting to be shown (from a notification tap or "Stand up now"). Not saved.
+    var standUpPrompt: [StandUpChoice]?
 
     @ObservationIgnored private let fileURL: URL
     @ObservationIgnored private let now: () -> Date
@@ -71,7 +73,7 @@ final class WalkStore {
     /// Every day with something recorded, newest first.
     var recordedDays: [DayRecord] {
         data.days.values
-            .filter { !$0.laps.isEmpty || !$0.everyday.isEmpty || !$0.sessions.isEmpty }
+            .filter(\.hasAnything)
             .sorted { $0.day > $1.day }
     }
 
@@ -177,11 +179,96 @@ final class WalkStore {
     }
 
     func currentPlan() -> [PlannedReminder] {
-        ReminderPlanner.plan(now: now(), calendar: calendar, settings: data.settings, lapsToday: lapsToday)
+        ReminderPlanner.plan(now: now(), calendar: calendar, settings: data.settings, lapsToday: lapsToday,
+                             lotionDoneToday: lotionDoneToday, standUpsQuietUntil: standUpsQuietUntil)
+    }
+
+    /// While he's walking, hold stand-ups until 45 minutes after his latest lap.
+    var standUpsQuietUntil: Date? {
+        guard let a = data.active else { return nil }
+        let lastLap = record(for: a.day).laps.map(\.time).max() ?? a.start
+        return max(lastLap, a.start).addingTimeInterval(45 * 60)
     }
 
     func refreshReminders() {
         scheduler?.apply(currentPlan())
+    }
+
+    // MARK: - Stand-ups
+
+    var standUpsDoneToday: Int { today.standUpsDone }
+    var lotionDoneToday: Bool { today.lotionDoneAt != nil }
+    var standUpsPausedToday: Bool { data.settings.standUp.pausedOn == todayKey }
+
+    /// The stand-up he picked but hasn't marked done yet.
+    var pendingStandUp: StandUpEntry? { today.standUps.last { $0.doneAt == nil } }
+
+    /// The three choices for right now.
+    func standUpChoicesNow() -> [StandUpChoice] {
+        let t = now()
+        let slot = StandUps.currentSlot(now: t, calendar: calendar, settings: data.settings.standUp)
+        return StandUps.choices(dayNumber: StandUps.dayNumber(t, calendar: calendar),
+                                slot: slot, lotionDone: lotionDoneToday)
+    }
+
+    /// Opens the picker. Choices from a notification are used when given (minus the lotion if it's done).
+    func showStandUpPicker(choiceIDs: [String]? = nil) {
+        var choices = (choiceIDs ?? []).compactMap(StandUps.choice(id:))
+        if choices.count != 3 || (lotionDoneToday && choices.contains(StandUps.lotion)) {
+            choices = standUpChoicesNow()
+        }
+        standUpPrompt = choices
+    }
+
+    /// Picking one is his commitment to stand up for it.
+    func pickStandUp(_ choice: StandUpChoice) {
+        let t = now()
+        mutateDay(todayKey) { day in
+            day.standUps.removeAll { $0.doneAt == nil }
+            day.standUps.append(StandUpEntry(picked: t, choiceID: choice.id, title: choice.title))
+        }
+        save()
+    }
+
+    /// Marks the picked stand-up done. Returns today's count.
+    @discardableResult
+    func completeStandUp() -> Int {
+        let t = now()
+        var wasLotion = false
+        mutateDay(todayKey) { day in
+            guard let i = day.standUps.lastIndex(where: { $0.doneAt == nil }) else { return }
+            day.standUps[i].doneAt = t
+            wasLotion = day.standUps[i].choiceID == StandUps.lotion.id
+            if wasLotion && day.lotionDoneAt == nil { day.lotionDoneAt = t }
+        }
+        save()
+        return standUpsDoneToday
+    }
+
+    func skipPendingStandUp() {
+        mutateDay(todayKey) { $0.standUps.removeAll { $0.doneAt == nil } }
+        save()
+    }
+
+    func setLotionDone(_ done: Bool) {
+        let t = now()
+        mutateDay(todayKey) { $0.lotionDoneAt = done ? t : nil }
+        save()
+    }
+
+    func deleteStandUp(_ id: UUID, on key: String) {
+        mutateDay(key) { $0.standUps.removeAll { $0.id == id } }
+        save()
+    }
+
+    func updateStandUpSettings(_ settings: StandUpSettings) {
+        data.settings.standUp = settings
+        save()
+    }
+
+    func setStandUpsPausedToday(_ paused: Bool) {
+        data.settings.standUp.pausedOn = paused ? todayKey : nil
+        save()
     }
 
     // MARK: - Everyday walking

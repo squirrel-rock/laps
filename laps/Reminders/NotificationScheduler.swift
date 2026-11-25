@@ -7,8 +7,10 @@ protocol ReminderScheduling: AnyObject {
 
 enum NotificationIDs {
     static let inviteCategory = "WALK_INVITE"
+    static let standUpCategory = "STAND_UP"
     static let walkAction = "WALK_NOW"
     static let laterAction = "REMIND_LATER"
+    static let choicesKey = "choices"
 }
 
 /// Applies a reminder plan to the system notification center.
@@ -27,10 +29,14 @@ final class NotificationScheduler: ReminderScheduling {
         let later = UNNotificationAction(identifier: NotificationIDs.laterAction,
                                          title: "Remind me later",
                                          options: [])
-        let category = UNNotificationCategory(identifier: NotificationIDs.inviteCategory,
-                                              actions: [walk, later],
-                                              intentIdentifiers: [])
-        UNUserNotificationCenter.current().setNotificationCategories([category])
+        let invite = UNNotificationCategory(identifier: NotificationIDs.inviteCategory,
+                                            actions: [walk, later],
+                                            intentIdentifiers: [])
+        // Stand-ups have no small notification buttons: tapping opens three big choices in the app.
+        let standUp = UNNotificationCategory(identifier: NotificationIDs.standUpCategory,
+                                             actions: [],
+                                             intentIdentifiers: [])
+        UNUserNotificationCenter.current().setNotificationCategories([invite, standUp])
     }
 
     static func requestPermission() async -> Bool {
@@ -45,7 +51,12 @@ final class NotificationScheduler: ReminderScheduling {
             content.title = item.title
             content.body = item.body
             content.sound = .default
-            content.categoryIdentifier = NotificationIDs.inviteCategory
+            if item.kind == .standUp {
+                content.categoryIdentifier = NotificationIDs.standUpCategory
+                content.userInfo = [NotificationIDs.choicesKey: item.choiceIDs]
+            } else {
+                content.categoryIdentifier = NotificationIDs.inviteCategory
+            }
             let parts = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: item.date)
             let trigger = UNCalendarNotificationTrigger(dateMatching: parts, repeats: false)
             center.add(UNNotificationRequest(identifier: item.id, content: content, trigger: trigger))

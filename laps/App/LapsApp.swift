@@ -48,8 +48,12 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
 
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 didReceive response: UNNotificationResponse) async {
+        let content = response.notification.request.content
         if response.actionIdentifier == NotificationIDs.laterAction {
             await MainActor.run { AppDelegate.store.remindMeLater() }
+        } else if content.categoryIdentifier == NotificationIDs.standUpCategory {
+            let ids = content.userInfo[NotificationIDs.choicesKey] as? [String]
+            await MainActor.run { AppDelegate.store.showStandUpPicker(choiceIDs: ids) }
         }
     }
 }

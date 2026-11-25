@@ -29,7 +29,7 @@ struct RemindersView: View {
                     get: { store.remindersPausedToday },
                     set: { store.setRemindersPausedToday($0) })) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Pause reminders for today")
+                        Text("Pause walk reminders for today")
                         Text("They'll start again tomorrow.")
                             .font(.subheadline)
                             .foregroundStyle(Theme.secondaryText)
@@ -62,13 +62,15 @@ struct RemindersView: View {
                 Text("Each reminder asks \"Time for a little walk?\" You can tap \"Remind me later\" right on the notification. Once you've done four sets in a day, the rest of that day's reminders stay quiet.")
             }
 
+            StandUpSettingsSection()
+
             Section {
                 Toggle("Sounds", isOn: Binding(
                     get: { store.settings.soundOn },
                     set: { store.setSound($0) }))
                     .frame(minHeight: 48)
             } footer: {
-                Text("Sounds follow the ring/silent switch on the side of the iPhone.")
+                Text("Cheerful sounds for laps, sets and stand-ups. They play even when the iPhone is on silent.")
             }
         }
         .font(.system(.body, design: .rounded))
@@ -119,5 +121,62 @@ struct ReminderRow: View {
                 .accessibilityLabel("Reminder at \(reminder.hour):\(String(format: "%02d", reminder.minute)) on")
         }
         .frame(minHeight: 56)
+    }
+}
+
+struct StandUpSettingsSection: View {
+    @Environment(WalkStore.self) private var store
+
+    var body: some View {
+        let settings = store.settings.standUp
+
+        Section {
+            Toggle("Every half hour", isOn: binding(\.isOn))
+                .frame(minHeight: 48)
+            if settings.isOn {
+                DatePicker("From", selection: time(hour: \.startHour, minute: \.startMinute),
+                           displayedComponents: .hourAndMinute)
+                    .frame(minHeight: 48)
+                DatePicker("Until", selection: time(hour: \.endHour, minute: \.endMinute),
+                           displayedComponents: .hourAndMinute)
+                    .frame(minHeight: 48)
+                Toggle(isOn: Binding(
+                    get: { store.standUpsPausedToday },
+                    set: { store.setStandUpsPausedToday($0) })) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Pause stand-ups for today")
+                        Text("They'll start again tomorrow.")
+                            .font(.subheadline)
+                            .foregroundStyle(Theme.secondaryText)
+                    }
+                }
+                .frame(minHeight: 56)
+            }
+        } header: {
+            Text("Stand-up reminders")
+        } footer: {
+            Text("Each one offers three choices: a spin around the living room, an exercise, and something fun or useful. They wait while you're in the middle of a walk, and skip any time a walk reminder is due.")
+        }
+    }
+
+    private func binding(_ key: WritableKeyPath<StandUpSettings, Bool>) -> Binding<Bool> {
+        Binding(get: { store.settings.standUp[keyPath: key] },
+                set: { var s = store.settings.standUp; s[keyPath: key] = $0; store.updateStandUpSettings(s) })
+    }
+
+    private func time(hour: WritableKeyPath<StandUpSettings, Int>,
+                      minute: WritableKeyPath<StandUpSettings, Int>) -> Binding<Date> {
+        Binding(
+            get: {
+                let s = store.settings.standUp
+                return Calendar.current.date(bySettingHour: s[keyPath: hour], minute: s[keyPath: minute], second: 0, of: .now) ?? .now
+            },
+            set: { newDate in
+                var s = store.settings.standUp
+                let c = Calendar.current.dateComponents([.hour, .minute], from: newDate)
+                s[keyPath: hour] = c.hour ?? s[keyPath: hour]
+                s[keyPath: minute] = c.minute ?? s[keyPath: minute]
+                store.updateStandUpSettings(s)
+            })
     }
 }

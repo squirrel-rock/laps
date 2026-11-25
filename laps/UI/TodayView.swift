@@ -12,6 +12,13 @@ struct TodayView: View {
     /// Taps closer together than this are treated as one (helps with a hand tremor).
     private let doubleTapGuard: TimeInterval = 2.5
 
+    #if DEBUG
+    // Debug-only: `-scrollBottom YES` opens scrolled to the bottom (used for screenshots).
+    private let startAtBottom = UserDefaults.standard.bool(forKey: "scrollBottom")
+    #else
+    private let startAtBottom = false
+    #endif
+
     var body: some View {
         let laps = store.lapsToday
         let session = store.active
@@ -47,11 +54,22 @@ struct TodayView: View {
                     .accessibilityHint("Removes the most recent lap after you confirm")
                     .padding(.top, 4)
                 }
+
+                StandUpCard()
+                    .padding(.top, 8)
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 32)
         }
+        .defaultScrollAnchor(startAtBottom ? .bottom : .top)
         .background(Theme.background.ignoresSafeArea())
+        .overlay {
+            if let c = celebration, c.moment.isBig, !reduceMotion {
+                ConfettiView()
+                    .id(c.id)
+                    .ignoresSafeArea()
+            }
+        }
         .overlay(alignment: .top) {
             if let c = celebration {
                 CelebrationBanner(celebration: c)
@@ -188,7 +206,8 @@ struct TodayView: View {
         let total = animateReturning { store.recordLap() }
         lapTick += 1
         let moment = LapMath.moment(afterLap: total)
-        Sounds.play(moment, enabled: store.settings.soundOn)
+        Sounds.play(for: moment, enabled: store.settings.soundOn)
+        if moment.isBig { Haptics.celebrate() }
         show(Celebration(moment: moment, message: LapMath.message(afterLap: total)))
     }
 

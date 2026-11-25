@@ -223,6 +223,71 @@ final class WalkStoreTests: XCTestCase {
         XCTAssertTrue(files.contains { $0.contains("unreadable") })
     }
 
+    func testStandUpPickThenDone() {
+        let store = makeStore()
+        let choices = store.standUpChoicesNow()
+        XCTAssertEqual(choices.first, StandUps.spin)
+        store.pickStandUp(choices[1])
+        XCTAssertEqual(store.pendingStandUp?.choiceID, choices[1].id)
+        XCTAssertEqual(store.standUpsDoneToday, 0)
+        clock.advance(minutes: 3)
+        XCTAssertEqual(store.completeStandUp(), 1)
+        XCTAssertNil(store.pendingStandUp)
+        XCTAssertEqual(store.lapsToday, 0, "Stand-ups never count as laps")
+        XCTAssertEqual(makeStore().standUpsDoneToday, 1, "Saved")
+    }
+
+    func testPickingLotionAndFinishingMarksLotionDone() {
+        let store = makeStore()
+        store.pickStandUp(StandUps.lotion)
+        store.completeStandUp()
+        XCTAssertTrue(store.lotionDoneToday)
+        XCTAssertFalse(store.standUpChoicesNow().contains(StandUps.lotion))
+        XCTAssertFalse(scheduler.last.contains { $0.id.contains(store.todayKey) && $0.choiceIDs.contains("lotion") })
+    }
+
+    func testNewPickReplacesUnfinishedOne() {
+        let store = makeStore()
+        store.pickStandUp(StandUps.spin)
+        store.pickStandUp(StandUps.exercises[0])
+        XCTAssertEqual(store.today.standUps.count, 1)
+        store.skipPendingStandUp()
+        XCTAssertTrue(store.today.standUps.isEmpty)
+    }
+
+    func testNotificationChoicesDropLotionOnceDone() {
+        let store = makeStore()
+        store.setLotionDone(true)
+        store.showStandUpPicker(choiceIDs: ["spin", "standups", "lotion"])
+        XCTAssertFalse(store.standUpPrompt?.contains(StandUps.lotion) ?? true)
+        XCTAssertEqual(store.standUpPrompt?.count, 3)
+    }
+
+    func testStandUpsHeldWhileWalking() {
+        let store = makeStore()
+        store.recordLap()
+        XCTAssertEqual(store.standUpsQuietUntil, clock.now.addingTimeInterval(45 * 60))
+        store.finishForNow()
+        XCTAssertNil(store.standUpsQuietUntil)
+    }
+
+    func testFirstVersionSaveFileStillLoads() throws {
+        let v1 = """
+        {"version":1,"days":{"2026-11-23":{"day":"2026-11-23","laps":[{"id":"6F9619FF-8B86-D011-B42D-00C04FC964FF","time":"2026-11-23T17:00:00Z"}],"everyday":[],"sessions":[]}},
+         "settings":{"reminders":[{"id":"7F9619FF-8B86-D011-B42D-00C04FC964FF","hour":7,"minute":30,"isOn":true}],"soundOn":false}}
+        """
+        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Data(v1.utf8).write(to: url)
+        let store = makeStore()
+        XCTAssertNil(store.loadProblem)
+        XCTAssertEqual(store.lapsToday, 1)
+        XCTAssertFalse(store.settings.soundOn)
+        XCTAssertEqual(store.settings.reminders.count, 1)
+        XCTAssertTrue(store.settings.standUp.isOn)
+        XCTAssertEqual(store.settings.standUp.startHour, 10)
+        XCTAssertEqual(store.settings.standUp.startMinute, 30)
+    }
+
     // MARK: Interruptions
 
     func testBathroomBreakSavesPausesAndSchedulesTenMinuteReminder() {
@@ -272,9 +337,10 @@ final class WalkStoreTests: XCTestCase {
         store.remindMeLater()
         store.setRemindersPausedToday(true)
         let todayKey = store.todayKey
-        XCTAssertFalse(scheduler.last.contains { $0.kind != .daily })
-        XCTAssertFalse(scheduler.last.contains { $0.id.contains(todayKey) })
-        XCTAssertTrue(scheduler.last.contains { $0.id.contains("2026-11-24") }, "Tomorrow still reminds")
+        let walkReminders = scheduler.last.filter(\.isWalkReminder)
+        XCTAssertFalse(walkReminders.contains { $0.kind != .daily })
+        XCTAssertFalse(walkReminders.contains { $0.id.contains(todayKey) })
+        XCTAssertTrue(walkReminders.contains { $0.id.contains("2026-11-24") }, "Tomorrow still reminds")
     }
 }
 
@@ -284,14 +350,30 @@ final class ReminderPlannerTests: XCTestCase {
     let now = date(2026, 11, 23, 10)     // 10 AM
     let keys = DayKey(calendar: testCalendar)
 
-    func plan(_ settings: Settings = Settings(), laps: Int = 0, at: Date? = nil) -> [PlannedReminder] {
-        ReminderPlanner.plan(now: at ?? now, calendar: testCalendar, settings: settings, lapsToday: laps)
+    func plan(_ settings: Settings = Settings(), laps: Int = 0, at: Date? = nil,
+              lotionDone: Bool = false, quietUntil: Date? = nil) -> [PlannedReminder] {
+        ReminderPlanner.plan(now: at ?? now, calendar: testCalendar, settings: settings, lapsToday: laps,
+                             lotionDoneToday: lotionDone, standUpsQuietUntil: quietUntil)
+    }
+
+    func walks(_ p: [PlannedReminder], on key: String) -> [PlannedReminder] {
+        p.filter { $0.kind == .daily && $0.id.contains(key) }
+    }
+
+    func standUps(_ p: [PlannedReminder], on key: String) -> [PlannedReminder] {
+        p.filter { $0.kind == .standUp && $0.id.contains(key) }
+    }
+
+    var noStandUps: Settings {
+        var s = Settings()
+        s.standUp.isOn = false
+        return s
     }
 
     func testSuggestedTimesSkipPastOnesToday() {
-        let today = plan().filter { $0.id.contains("2026-11-23") }
+        let today = walks(plan(), on: "2026-11-23")
         XCTAssertEqual(today.map { testCalendar.component(.hour, from: $0.date) }, [13, 16])
-        let tomorrow = plan().filter { $0.id.contains("2026-11-24") }
+        let tomorrow = walks(plan(), on: "2026-11-24")
         XCTAssertEqual(tomorrow.map { testCalendar.component(.hour, from: $0.date) }, [7, 13, 16])
         XCTAssertEqual(tomorrow.first.map { testCalendar.component(.minute, from: $0.date) }, 30)
     }
@@ -306,35 +388,42 @@ final class ReminderPlannerTests: XCTestCase {
         XCTAssertEqual(Set(p.map(\.id)).count, p.count)
     }
 
-    func testCoversTwoWeeksWithThreeReminders() {
-        let days = Set(plan().map { keys.key(for: $0.date) })
+    func testCoversTwoWeeksWithThreeRemindersWhenStandUpsOff() {
+        let days = Set(plan(noStandUps).map { keys.key(for: $0.date) })
         XCTAssertEqual(days.count, 14)
+    }
+
+    func testWalkRemindersCoverAWeekWhenStandUpsOn() {
+        let days = Set(plan().filter { $0.kind == .daily }.map { keys.key(for: $0.date) })
+        XCTAssertEqual(days.count, 7)
+        XCTAssertLessThanOrEqual(plan().count, ReminderPlanner.systemLimit)
     }
 
     func testDisabledRemindersAreSkipped() {
         var s = Settings()
         s.reminders[1].isOn = false
-        XCTAssertFalse(plan(s).contains { testCalendar.component(.hour, from: $0.date) == 13 })
+        XCTAssertFalse(plan(s).contains { $0.kind == .daily && testCalendar.component(.hour, from: $0.date) == 13 })
     }
 
     func testNoRemindersLeavesOnlyOneOffs() {
-        var s = Settings()
+        var s = noStandUps
         s.reminders = []
         s.snoozeUntil = now.addingTimeInterval(1800)
         XCTAssertEqual(plan(s).map(\.kind), [.later])
     }
 
     func testAfterGoalTodayRemindersBecomeGentleBonusInvitations() {
-        let today = plan(laps: 9).filter { $0.id.contains("2026-11-23") }
+        let today = walks(plan(laps: 9), on: "2026-11-23")
         XCTAssertEqual(today.count, 2)
         XCTAssertTrue(today.allSatisfy { $0.title == "Feeling up for a bonus set?" })
-        let tomorrow = plan(laps: 9).filter { $0.id.contains("2026-11-24") }
+        let tomorrow = walks(plan(laps: 9), on: "2026-11-24")
         XCTAssertFalse(tomorrow.contains { $0.title.contains("bonus") })
     }
 
     func testAfterFourSetsTodayIsQuiet() {
-        XCTAssertTrue(plan(laps: 12).filter { $0.id.contains("2026-11-23") }.isEmpty)
-        XCTAssertFalse(plan(laps: 12).filter { $0.id.contains("2026-11-24") }.isEmpty)
+        XCTAssertTrue(walks(plan(laps: 12), on: "2026-11-23").isEmpty)
+        XCTAssertFalse(walks(plan(laps: 12), on: "2026-11-24").isEmpty)
+        XCTAssertFalse(standUps(plan(laps: 12), on: "2026-11-23").isEmpty, "Stand-ups carry on")
     }
 
     func testDailyReminderNearOneOffIsDropped() {
@@ -349,19 +438,80 @@ final class ReminderPlannerTests: XCTestCase {
         var s = Settings()
         s.snoozeUntil = now.addingTimeInterval(-60)
         s.breakReminderAt = now.addingTimeInterval(-60)
-        XCTAssertTrue(plan(s).allSatisfy { $0.kind == .daily })
+        XCTAssertTrue(plan(s).allSatisfy { $0.kind == .daily || $0.kind == .standUp })
     }
 
     func testPausedYesterdayDoesNotAffectToday() {
         var s = Settings()
         s.remindersPausedOn = "2026-11-22"
-        XCTAssertEqual(plan(s).filter { $0.id.contains("2026-11-23") }.count, 2)
+        XCTAssertEqual(walks(plan(s), on: "2026-11-23").count, 2)
     }
 
     func testDaylightSavingDayKeepsWallClockTimes() {
         // US clocks spring forward on 2026-03-08.
         let p = plan(at: date(2026, 3, 7, 20))
-        let dst = p.filter { $0.id.contains("2026-03-08") }
+        let dst = walks(p, on: "2026-03-08")
         XCTAssertEqual(dst.map { testCalendar.component(.hour, from: $0.date) }, [7, 13, 16])
+    }
+
+    // MARK: Stand-ups
+
+    func testStandUpsEveryHalfHourFromTenThirtyToEight() {
+        var s = Settings()
+        s.reminders = []
+        let tomorrow = standUps(plan(s), on: "2026-11-24")
+        XCTAssertEqual(tomorrow.count, 20)
+        XCTAssertEqual(tomorrow.first.map { testCalendar.dateComponents([.hour, .minute], from: $0.date) },
+                       DateComponents(hour: 10, minute: 30))
+        XCTAssertEqual(tomorrow.last.map { testCalendar.dateComponents([.hour, .minute], from: $0.date) },
+                       DateComponents(hour: 20, minute: 0))
+    }
+
+    func testStandUpSkippedWhenWalkReminderDue() {
+        let p = plan()
+        XCTAssertFalse(p.contains { $0.id == "standup.2026-11-24.1300" })
+        XCTAssertFalse(p.contains { $0.id == "standup.2026-11-24.1600" })
+        XCTAssertTrue(p.contains { $0.id == "standup.2026-11-24.1230" })
+        XCTAssertTrue(p.contains { $0.id == "standup.2026-11-24.1330" })
+    }
+
+    func testStandUpsAlwaysOfferSpinAndLotionUntilDone() {
+        let first = standUps(plan(), on: "2026-11-23").first!
+        XCTAssertEqual(first.choiceIDs.count, 3)
+        XCTAssertEqual(first.choiceIDs.first, "spin")
+        XCTAssertEqual(first.choiceIDs.last, "lotion")
+        XCTAssertTrue(first.body.hasPrefix("Pick one: a spin around the living room"))
+
+        let afterLotion = standUps(plan(lotionDone: true), on: "2026-11-23")
+        XCTAssertFalse(afterLotion.contains { $0.choiceIDs.contains("lotion") })
+        let tomorrow = standUps(plan(lotionDone: true), on: "2026-11-24")
+        XCTAssertTrue(tomorrow.allSatisfy { $0.choiceIDs.last == "lotion" }, "Lotion comes back the next day")
+    }
+
+    func testStandUpChoicesRotate() {
+        let exercises = Set((0..<20).map { StandUps.choices(dayNumber: 100, slot: $0, lotionDone: true)[1].id })
+        let fun = Set((0..<20).map { StandUps.choices(dayNumber: 100, slot: $0, lotionDone: true)[2].id })
+        XCTAssertEqual(exercises.count, StandUps.exercises.count)
+        XCTAssertEqual(fun.count, StandUps.fun.count)
+        XCTAssertEqual(StandUps.choices(dayNumber: -3, slot: 0, lotionDone: true).count, 3)
+    }
+
+    func testStandUpsWaitDuringAWalk() {
+        let p = plan(at: date(2026, 11, 23, 11, 0), quietUntil: date(2026, 11, 23, 11, 45))
+        let today = standUps(p, on: "2026-11-23")
+        XCTAssertEqual(today.first.map { testCalendar.dateComponents([.hour, .minute], from: $0.date) },
+                       DateComponents(hour: 12, minute: 0))
+    }
+
+    func testStandUpsPausedTodayOnlyAffectsStandUps() {
+        var s = Settings()
+        s.standUp.pausedOn = "2026-11-23"
+        XCTAssertTrue(standUps(plan(s), on: "2026-11-23").isEmpty)
+        XCTAssertEqual(walks(plan(s), on: "2026-11-23").count, 2)
+        XCTAssertFalse(standUps(plan(s), on: "2026-11-24").isEmpty)
+    }
+
+    func testStandUpsOffMeansNone() {
+        XCTAssertFalse(plan(noStandUps).contains { $0.kind == .standUp })
     }
 }
