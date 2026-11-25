@@ -10,6 +10,10 @@ enum Theme {
     static let text = dynamic(light: 0x2B2D2D, dark: 0xEEF1F0)
     static let secondaryText = dynamic(light: 0x5C6362, dark: 0xA9B3B1)
     static let warm = dynamic(light: 0xE9A23B, dark: 0xF2B65A)   // celebration accent, never a warning
+    /// Car walks: bluer and brighter than the lap teal, same family.
+    static let turquoise = dynamic(light: 0x1A9CC2, dark: 0x1A9CC2)
+    static let darkTurquoise = dynamic(light: 0x13728F, dark: 0x7ACDE6)
+    static let lightTurquoise = dynamic(light: 0xDCF0F7, dark: 0x173440)
 
     static func dynamic(light: UInt32, dark: UInt32) -> Color {
         Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(hex: dark) : UIColor(hex: light) })
@@ -28,6 +32,8 @@ extension UIColor {
 /// Big teal button for the main action.
 struct PrimaryButtonStyle: ButtonStyle {
     var minHeight: CGFloat = 96
+    var color: Color = Theme.teal
+    var shadow: Color = Theme.darkTeal
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -38,8 +44,8 @@ struct PrimaryButtonStyle: ButtonStyle {
             .padding(.horizontal, 16)
             .background(
                 RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .fill(Theme.teal)
-                    .shadow(color: Theme.darkTeal.opacity(0.3), radius: configuration.isPressed ? 2 : 8, y: configuration.isPressed ? 1 : 4)
+                    .fill(color)
+                    .shadow(color: shadow.opacity(0.3), radius: configuration.isPressed ? 2 : 8, y: configuration.isPressed ? 1 : 4)
             )
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .animation(.spring(response: 0.25, dampingFraction: 0.7), value: configuration.isPressed)

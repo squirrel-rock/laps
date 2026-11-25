@@ -6,11 +6,16 @@ struct LapEntry: Codable, Identifiable, Hashable {
     var time: Date
 }
 
-/// Everyday walking, kept separate from the structured laps.
+/// Everyday walking. A walk to the car and back earns a turquoise walking credit;
+/// anything typed with "Something else…" is just a note.
 struct EverydayEntry: Codable, Identifiable, Hashable {
     var id = UUID()
     var time: Date
     var note: String
+
+    static let carWalk = "Walked to the car"
+
+    var earnsCredit: Bool { note == Self.carWalk }
 }
 
 /// A walking session that has ended ("Finished for now").
@@ -41,6 +46,10 @@ struct DayRecord: Codable, Hashable {
     var lotionDoneAt: Date?
 
     var lapCount: Int { laps.count }
+    /// Walks to the car and back: turquoise walking credits.
+    var carWalks: Int { everyday.filter(\.earnsCredit).count }
+    /// Laps plus car walks. The daily goal is 10.
+    var walkingCredits: Int { lapCount + carWalks }
     var standUpsDone: Int { standUps.filter { $0.doneAt != nil }.count }
     var hasAnything: Bool {
         !laps.isEmpty || !everyday.isEmpty || !sessions.isEmpty || !standUps.isEmpty || lotionDoneAt != nil

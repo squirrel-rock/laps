@@ -45,7 +45,7 @@ enum ReminderPlanner {
     static func plan(now: Date,
                      calendar: Calendar,
                      settings: Settings,
-                     lapsToday: Int,
+                     creditsToday: Int,
                      lotionDoneToday: Bool = false,
                      standUpsQuietUntil: Date? = nil) -> [PlannedReminder] {
         let dayKey = DayKey(calendar: calendar)
@@ -85,7 +85,7 @@ enum ReminderPlanner {
             for offset in 0..<daysAhead {
                 guard let day = calendar.date(byAdding: .day, value: offset, to: startOfToday) else { continue }
                 let isToday = offset == 0
-                if isToday && (pausedToday || lapsToday >= LapMath.bonusGoal) { continue }
+                if isToday && (pausedToday || creditsToday >= LapMath.quietAfter) { continue }
                 let key = dayKey.key(for: day)
 
                 for (index, time) in times.enumerated() {
@@ -93,12 +93,12 @@ enum ReminderPlanner {
                           date > now else { continue }
                     if oneOffDates.contains(where: { abs($0.timeIntervalSince(date)) < clashWindow }) { continue }
 
-                    let bonus = isToday && lapsToday >= LapMath.dailyGoal
+                    let bonus = isToday && creditsToday >= LapMath.dailyGoal
                     result.append(PlannedReminder(
                         id: String(format: "walk.daily.%@.%02d%02d", key, time.hour, time.minute),
                         date: date,
-                        title: bonus ? "Feeling up for a bonus set?" : invitations[index % invitations.count],
-                        body: bonus ? "You've already reached today's goal. Only if you feel like it."
+                        title: bonus ? "Feeling up for a bonus?" : invitations[index % invitations.count],
+                        body: bonus ? "You've reached today's goal. 3 gold laps make 13 — only if you feel like it."
                                     : "A few laps whenever you're ready.",
                         kind: .daily))
                 }

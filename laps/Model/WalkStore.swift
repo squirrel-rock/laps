@@ -54,6 +54,8 @@ final class WalkStore {
     func record(for key: String) -> DayRecord { data.days[key] ?? DayRecord(day: key) }
     var today: DayRecord { record(for: todayKey) }
     var lapsToday: Int { today.lapCount }
+    var carWalksToday: Int { today.carWalks }
+    var walkingCreditsToday: Int { today.walkingCredits }
     var active: ActiveSession? { data.active }
     var settings: Settings { data.settings }
     var remindersPausedToday: Bool { data.settings.remindersPausedOn == todayKey }
@@ -179,7 +181,7 @@ final class WalkStore {
     }
 
     func currentPlan() -> [PlannedReminder] {
-        ReminderPlanner.plan(now: now(), calendar: calendar, settings: data.settings, lapsToday: lapsToday,
+        ReminderPlanner.plan(now: now(), calendar: calendar, settings: data.settings, creditsToday: walkingCreditsToday,
                              lotionDoneToday: lotionDoneToday, standUpsQuietUntil: standUpsQuietUntil)
     }
 
@@ -273,12 +275,15 @@ final class WalkStore {
 
     // MARK: - Everyday walking
 
-    func addEveryday(_ note: String) {
+    /// Saves an everyday note for today and returns it (so it can be undone), or nil if blank.
+    @discardableResult
+    func addEveryday(_ note: String) -> EverydayEntry? {
         let trimmed = note.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-        let t = now()
-        mutateDay(todayKey) { $0.everyday.append(EverydayEntry(time: t, note: trimmed)) }
+        guard !trimmed.isEmpty else { return nil }
+        let entry = EverydayEntry(time: now(), note: trimmed)
+        mutateDay(todayKey) { $0.everyday.append(entry) }
         save()
+        return entry
     }
 
     func deleteEveryday(_ id: UUID, on key: String) {

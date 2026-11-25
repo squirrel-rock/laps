@@ -41,14 +41,15 @@ enum Sounds {
         return p
     }
 
-    /// Each set climbs C, E, G (tuning-fork tones). The 3rd lap's G leads into the
-    /// happy set sound, or the fanfare at 9 and 12 laps.
-    static func playLap(total: Int, enabled: Bool) {
-        play(lapNote(forLap: total), enabled: enabled)
+    /// Each dot group climbs C, E, G (tuning-fork tones). A full group leads into the
+    /// happy set sound, or the fanfare at the goal of 10, at 13, and each gold set after.
+    static func playLap(total: Int, carWalks: Int, enabled: Bool) {
+        let step = LapMath.step(afterLap: total, carWalks: carWalks)
+        play(note(step.note), enabled: enabled)
         let finish: SoundEffect?
-        switch LapMath.moment(afterLap: total) {
+        switch step.moment {
         case .set: finish = .set
-        case .goal, .fourSets, .extraSet: finish = .goal
+        case .goal, .lucky, .bonusSet: finish = .goal
         case .lap, .bonusLap: finish = nil
         }
         if let finish {
@@ -59,9 +60,9 @@ enum Sounds {
         }
     }
 
-    /// Lap 1, 2, 3 of each set → C, E, G.
-    nonisolated static func lapNote(forLap total: Int) -> SoundEffect {
-        switch (max(1, total) - 1) % 3 {
+    /// Place 0, 1, 2 in a dot group → C, E, G.
+    nonisolated static func note(_ place: Int) -> SoundEffect {
+        switch place % 3 {
         case 0: return .lapC
         case 1: return .lapE
         default: return .lapG

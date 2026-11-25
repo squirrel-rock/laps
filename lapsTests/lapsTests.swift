@@ -35,45 +35,64 @@ final class LapMathTests: XCTestCase {
         XCTAssertEqual(LapMath.sets(2), 0)
     }
 
-    func testNineIsTheDailyGoal() {
-        XCTAssertEqual(LapMath.dailyGoal, 9)
-        XCTAssertEqual(LapMath.lapsToGoal(4), 5)
-        XCTAssertEqual(LapMath.lapsToGoal(9), 0)
-        XCTAssertEqual(LapMath.lapsToGoal(12), 0, "Never negative")
-        XCTAssertEqual(LapMath.goalProgress(9), 1)
+    func testTenCreditsIsTheDailyGoal() {
+        XCTAssertEqual(LapMath.dailyGoal, 10)
+        XCTAssertEqual(LapMath.creditsToGoal(4), 6)
+        XCTAssertEqual(LapMath.creditsToGoal(10), 0)
+        XCTAssertEqual(LapMath.creditsToGoal(13), 0, "Never negative")
+        XCTAssertEqual(LapMath.goalProgress(10), 1)
         XCTAssertEqual(LapMath.goalProgress(15), 1)
     }
 
     func testDescriptionsMatchSpecExample() {
         XCTAssertEqual(LapMath.setsDescription(4), "1 complete set + 1 lap")
-        XCTAssertEqual(LapMath.statusLine(4), "5 laps to today's goal")
+        XCTAssertEqual(LapMath.statusLine(credits: 4), "6 laps to today's goal")
         XCTAssertEqual(LapMath.setsDescription(6), "2 complete sets")
         XCTAssertEqual(LapMath.setsDescription(2), "2 laps toward your first set")
         XCTAssertEqual(LapMath.setsDescription(0), "No laps yet today")
-        XCTAssertEqual(LapMath.statusLine(8), "1 lap to today's goal")
+        XCTAssertEqual(LapMath.statusLine(credits: 9), "1 lap to today's goal")
         XCTAssertEqual(LapMath.setsShort(44), "14 sets + 2 laps")
     }
 
     func testMomentsCelebrateSetsGoalAndBeyond() {
-        XCTAssertEqual(LapMath.moment(afterLap: 1), .lap)
-        XCTAssertEqual(LapMath.moment(afterLap: 3), .set)
-        XCTAssertEqual(LapMath.moment(afterLap: 9), .goal)
-        XCTAssertEqual(LapMath.message(afterLap: 9), "Nine laps today. Goal reached!")
-        XCTAssertEqual(LapMath.moment(afterLap: 10), .bonusLap)
-        XCTAssertEqual(LapMath.moment(afterLap: 12), .fourSets)
-        XCTAssertEqual(LapMath.message(afterLap: 12), "Four sets today. What a day!")
-        XCTAssertEqual(LapMath.moment(afterLap: 15), .extraSet)
-        XCTAssertEqual(LapMath.moment(afterLap: 16), .bonusLap)
+        // No car walk: groups 3, 3, 3, 1, then gold 3 → the 10th lap is the goal, the 13th is lucky.
+        XCTAssertEqual(LapMath.goalGroups(carWalks: 0), [3, 3, 3, 1])
+        XCTAssertEqual(LapMath.moment(afterLap: 1, carWalks: 0), .lap)
+        XCTAssertEqual(LapMath.moment(afterLap: 3, carWalks: 0), .set)
+        XCTAssertEqual(LapMath.moment(afterLap: 9, carWalks: 0), .set)
+        XCTAssertEqual(LapMath.moment(afterLap: 10, carWalks: 0), .goal)
+        XCTAssertEqual(LapMath.message(afterLap: 10, carWalks: 0), "Ten today. Goal reached!")
+        XCTAssertEqual(LapMath.moment(afterLap: 11, carWalks: 0), .bonusLap)
+        XCTAssertEqual(LapMath.moment(afterLap: 12, carWalks: 0), .bonusLap)
+        XCTAssertEqual(LapMath.moment(afterLap: 13, carWalks: 0), .lucky)
+        XCTAssertEqual(LapMath.message(afterLap: 13, carWalks: 0), "Thirteen! A lucky number.")
+        XCTAssertEqual(LapMath.moment(afterLap: 16, carWalks: 0), .bonusSet)
+        // One car walk: groups 3, 3, 3 → the 9th lap is the goal, the 12th makes 13.
+        XCTAssertEqual(LapMath.goalGroups(carWalks: 1), [3, 3, 3])
+        XCTAssertEqual(LapMath.moment(afterLap: 9, carWalks: 1), .goal)
+        XCTAssertEqual(LapMath.moment(afterLap: 10, carWalks: 1), .bonusLap)
+        XCTAssertEqual(LapMath.moment(afterLap: 12, carWalks: 1), .lucky)
     }
 
-    func testEachSetClimbsCEG() {
-        XCTAssertEqual((1...7).map(Sounds.lapNote(forLap:)), [.lapC, .lapE, .lapG, .lapC, .lapE, .lapG, .lapC])
+    func testEachDotGroupClimbsCEG() {
+        let notes = { (carWalks: Int) in (1...13).map { Sounds.note(LapMath.step(afterLap: $0, carWalks: carWalks).note) } }
+        // No car walk: C E G, C E G, C E G, C (the 10th alone), then gold C E G.
+        XCTAssertEqual(notes(0), [.lapC, .lapE, .lapG, .lapC, .lapE, .lapG, .lapC, .lapE, .lapG, .lapC, .lapC, .lapE, .lapG])
+        // One car walk: three sets, then gold C E G.
+        XCTAssertEqual(Array(notes(1).prefix(12)), [.lapC, .lapE, .lapG, .lapC, .lapE, .lapG, .lapC, .lapE, .lapG, .lapC, .lapE, .lapG])
     }
 
-    func testAfterGoalWordingEncouragesFourthSetGently() {
-        XCTAssertTrue(LapMath.statusLine(9).contains("only if you feel up to it"))
-        XCTAssertTrue(LapMath.statusLine(10).contains("2 more laps"))
-        XCTAssertTrue(LapMath.statusLine(11).contains("1 more lap "))
+    func testAfterGoalWordingIsGentle() {
+        XCTAssertEqual(LapMath.statusLine(credits: 10), "Goal reached! 3 gold laps make 13 — only if you feel up to it.")
+        XCTAssertEqual(LapMath.statusLine(credits: 11), "2 more gold laps make 13 — only if you feel up to it.")
+        XCTAssertEqual(LapMath.statusLine(credits: 12), "1 more gold lap makes 13 — only if you feel up to it.")
+        XCTAssertEqual(LapMath.statusLine(credits: 13), "Thirteen! A lucky number. What a day!")
+    }
+
+    func testWalkingDescriptionAddsCarWalks() {
+        XCTAssertEqual(LapMath.walkingDescription(laps: 6, carWalks: 0), "2 complete sets")
+        XCTAssertEqual(LapMath.walkingDescription(laps: 6, carWalks: 1), "2 complete sets + 1 car walk")
+        XCTAssertEqual(LapMath.walkingDescription(laps: 0, carWalks: 2), "2 car walks")
     }
 }
 
@@ -176,13 +195,23 @@ final class WalkStoreTests: XCTestCase {
         XCTAssertEqual(store.today.sessions.first?.lapCount, 2)
     }
 
-    func testEverydayWalkingDoesNotCountAsLaps() {
+    func testCarWalksEarnCreditsButAreNotLaps() {
         let store = makeStore()
         store.addEveryday("Walked to the car")
-        store.addEveryday("   ")
-        XCTAssertEqual(store.lapsToday, 0)
-        XCTAssertEqual(store.today.everyday.count, 1)
-        XCTAssertEqual(store.lastSevenDays().last?.laps, 0)
+        store.addEveryday("Walked to the mailbox")   // "Something else…": just a note
+        XCTAssertNil(store.addEveryday("   "))
+        store.recordLap()
+        XCTAssertEqual(store.lapsToday, 1)
+        XCTAssertEqual(store.carWalksToday, 1)
+        XCTAssertEqual(store.walkingCreditsToday, 2)
+        XCTAssertEqual(store.today.everyday.count, 2)
+    }
+
+    func testCarWalkCanBeUndone() {
+        let store = makeStore()
+        let entry = store.addEveryday(EverydayEntry.carWalk)!
+        store.deleteEveryday(entry.id, on: store.todayKey)
+        XCTAssertEqual(store.walkingCreditsToday, 0)
     }
 
     func testPreviousDaysAreKeptAndChartReadsSavedRecords() {
@@ -356,7 +385,7 @@ final class ReminderPlannerTests: XCTestCase {
 
     func plan(_ settings: Settings = Settings(), laps: Int = 0, at: Date? = nil,
               lotionDone: Bool = false, quietUntil: Date? = nil) -> [PlannedReminder] {
-        ReminderPlanner.plan(now: at ?? now, calendar: testCalendar, settings: settings, lapsToday: laps,
+        ReminderPlanner.plan(now: at ?? now, calendar: testCalendar, settings: settings, creditsToday: laps,
                              lotionDoneToday: lotionDone, standUpsQuietUntil: quietUntil)
     }
 
@@ -417,17 +446,19 @@ final class ReminderPlannerTests: XCTestCase {
     }
 
     func testAfterGoalTodayRemindersBecomeGentleBonusInvitations() {
-        let today = walks(plan(laps: 9), on: "2026-11-23")
+        XCTAssertFalse(walks(plan(laps: 9), on: "2026-11-23").contains { $0.title.contains("bonus") })
+        let today = walks(plan(laps: 10), on: "2026-11-23")
         XCTAssertEqual(today.count, 2)
-        XCTAssertTrue(today.allSatisfy { $0.title == "Feeling up for a bonus set?" })
-        let tomorrow = walks(plan(laps: 9), on: "2026-11-24")
+        XCTAssertTrue(today.allSatisfy { $0.title == "Feeling up for a bonus?" })
+        let tomorrow = walks(plan(laps: 10), on: "2026-11-24")
         XCTAssertFalse(tomorrow.contains { $0.title.contains("bonus") })
     }
 
-    func testAfterFourSetsTodayIsQuiet() {
-        XCTAssertTrue(walks(plan(laps: 12), on: "2026-11-23").isEmpty)
-        XCTAssertFalse(walks(plan(laps: 12), on: "2026-11-24").isEmpty)
-        XCTAssertFalse(standUps(plan(laps: 12), on: "2026-11-23").isEmpty, "Stand-ups carry on")
+    func testAfterThirteenCreditsTodayIsQuiet() {
+        XCTAssertFalse(walks(plan(laps: 12), on: "2026-11-23").isEmpty)
+        XCTAssertTrue(walks(plan(laps: 13), on: "2026-11-23").isEmpty)
+        XCTAssertFalse(walks(plan(laps: 13), on: "2026-11-24").isEmpty)
+        XCTAssertFalse(standUps(plan(laps: 13), on: "2026-11-23").isEmpty, "Stand-ups carry on")
     }
 
     func testDailyReminderNearOneOffIsDropped() {

@@ -241,10 +241,17 @@ struct StandUpCard: View {
 /// Gentle confetti for big moments (a set, the goal, four sets).
 struct ConfettiView: View {
     @State private var fall = false
-    private let pieces: [(x: CGFloat, delay: Double, spin: Double, color: Color, size: CGFloat)] = (0..<36).map { i in
-        (CGFloat.random(in: 0...1), Double.random(in: 0...0.5), Double.random(in: 180...720),
-         [Theme.teal, Theme.warm, Theme.lightTeal, Color(UIColor(hex: 0xF28C8C))][i % 4],
-         CGFloat.random(in: 7...12))
+    private let pieces: [(x: CGFloat, delay: Double, spin: Double, color: Color, size: CGFloat)]
+
+    /// `gold`: a bigger, all-gold shower for 13.
+    init(gold: Bool = false) {
+        let colors = gold
+            ? [Theme.warm, Color(UIColor(hex: 0xFFD66B)), Color(UIColor(hex: 0xF5B83D)), .white]
+            : [Theme.teal, Theme.warm, Theme.lightTeal, Color(UIColor(hex: 0xF28C8C))]
+        pieces = (0..<(gold ? 64 : 36)).map { i in
+            (CGFloat.random(in: 0...1), Double.random(in: 0...(gold ? 0.9 : 0.5)), Double.random(in: 180...720),
+             colors[i % colors.count], CGFloat.random(in: 7...(gold ? 14 : 12)))
+        }
     }
 
     var body: some View {

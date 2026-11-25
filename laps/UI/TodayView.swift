@@ -27,7 +27,7 @@ struct TodayView: View {
         ScrollView {
             VStack(spacing: 20) {
                 header
-                TodayProgressCard(laps: laps)
+                TodayProgressCard(laps: laps, carWalks: store.carWalksToday)
 
                 if session?.state == .onBreak {
                     breakCard(laps: laps)
@@ -66,7 +66,7 @@ struct TodayView: View {
         .background(Theme.background.ignoresSafeArea())
         .overlay {
             if let c = celebration, c.moment.isBig, !reduceMotion {
-                ConfettiView()
+                ConfettiView(gold: c.moment == .lucky)
                     .id(c.id)
                     .ignoresSafeArea()
             }
@@ -205,11 +205,13 @@ struct TodayView: View {
         lastLapTap = now
 
         let total = animateReturning { store.recordLap() }
+        let carWalks = store.carWalksToday
         lapTick += 1
-        let moment = LapMath.moment(afterLap: total)
-        Sounds.playLap(total: total, enabled: store.settings.soundOn)
+        let moment = LapMath.moment(afterLap: total, carWalks: carWalks)
+        Sounds.playLap(total: total, carWalks: carWalks, enabled: store.settings.soundOn)
         if moment.isBig { Haptics.celebrate() }
-        show(Celebration(moment: moment, message: LapMath.message(afterLap: total)))
+        show(Celebration(moment: moment, message: LapMath.message(afterLap: total, carWalks: carWalks),
+                         icon: moment == .lucky ? "sparkles" : nil))
     }
 
     private func show(_ c: Celebration) {
@@ -234,46 +236,62 @@ struct TodayView: View {
 
 struct TodayProgressCard: View {
     let laps: Int
+    /// Walks to the car and back today.
+    let carWalks: Int
     @ScaledMetric(relativeTo: .largeTitle) private var bigNumber: CGFloat = 76
     @ScaledMetric(relativeTo: .largeTitle) private var ringSize: CGFloat = 210
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// The gold bonus (outer ring + 3 dots) only appears once he reaches 10.
+    @State private var showGold = false
+    /// The one-time "drawn around the 10" sweep when he first reaches it.
+    @State private var sweep: CGFloat = 0
+    @State private var sweepOpacity: Double = 0
+    @State private var revealTask: Task<Void, Never>?
+
+    private var credits: Int { laps + carWalks }
+    private var reachedGoal: Bool { credits >= LapMath.dailyGoal }
+    private var bonus: Int { max(0, credits - LapMath.dailyGoal) }
 
     var body: some View {
+        let goal = Double(LapMath.dailyGoal)
+
         VStack(spacing: 18) {
             ZStack {
                 Circle()
                     .stroke(Theme.lightTeal, lineWidth: 18)
+                // Laps on top of the car walks, so the turquoise start stays visible.
                 Circle()
-                    .trim(from: 0, to: LapMath.goalProgress(laps))
+                    .trim(from: 0, to: LapMath.goalProgress(credits))
                     .stroke(Theme.teal, style: StrokeStyle(lineWidth: 18, lineCap: .round))
                     .rotationEffect(.degrees(-90))
-                if laps > LapMath.dailyGoal {
-                    // A warm outer arc for bonus laps toward the 4th set.
+                if carWalks > 0 {
                     Circle()
-                        .trim(from: 0, to: min(1, Double(laps - LapMath.dailyGoal) / Double(LapMath.bonusGoal - LapMath.dailyGoal)))
-                        .stroke(Theme.warm, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                        .trim(from: 0, to: min(1, Double(carWalks) / goal))
+                        .stroke(Theme.turquoise, style: StrokeStyle(lineWidth: 18, lineCap: .round))
                         .rotationEffect(.degrees(-90))
-                        .padding(-17)
                 }
+                goldRing
                 VStack(spacing: 0) {
-                    Text("\(laps)")
+                    Text("\(credits)")
                         .font(.system(size: bigNumber, weight: .bold, design: .rounded))
-                        .foregroundStyle(Theme.text)
-                        .contentTransition(.numericText(value: Double(laps)))
-                    Text("of \(LapMath.dailyGoal) laps")
+                        .foregroundStyle(credits >= LapMath.luckyNumber ? Theme.warm : Theme.text)
+                        .contentTransition(.numericText(value: Double(credits)))
+                    Text("of \(LapMath.dailyGoal) today")
                         .font(.system(.title3, design: .rounded).weight(.medium))
                         .foregroundStyle(Theme.secondaryText)
                 }
             }
             .frame(width: ringSize, height: ringSize)
-            .padding(.top, 10)
+            .padding(14)
 
-            SetDots(laps: laps)
+            SetDots(laps: laps, carWalks: carWalks, showGold: showGold)
 
             VStack(spacing: 6) {
-                Text(LapMath.setsDescription(laps))
+                Text(LapMath.walkingDescription(laps: laps, carWalks: carWalks))
                     .font(.system(.title3, design: .rounded).weight(.semibold))
                     .foregroundStyle(Theme.text)
-                Text(LapMath.statusLine(laps))
+                Text(LapMath.statusLine(credits: credits))
                     .font(.system(.body, design: .rounded))
                     .foregroundStyle(Theme.darkTeal)
             }
@@ -281,38 +299,177 @@ struct TodayProgressCard: View {
         }
         .card()
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Today: \(laps) of \(LapMath.dailyGoal) laps. \(LapMath.setsDescription(laps)). \(LapMath.statusLine(laps))")
+        .accessibilityLabel("Walking today: \(credits) of \(LapMath.dailyGoal). \(LapMath.walkingDescription(laps: laps, carWalks: carWalks)). \(LapMath.statusLine(credits: credits))")
+        .onAppear { showGold = reachedGoal }
+        .onChange(of: reachedGoal) { _, reached in
+            reached ? revealGold() : hideGold()
+        }
+    }
+
+    /// Gold outer ring in 3 segments, one per bonus lap toward 13.
+    private var goldRing: some View {
+        ZStack {
+            if showGold {
+                ForEach(0..<3, id: \.self) { k in
+                    let gap = 0.015
+                    let from = Double(k) / 3 + gap, to = Double(k + 1) / 3 - gap
+                    Circle()
+                        .trim(from: from, to: to)
+                        .stroke(Theme.warm.opacity(0.3), style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                    Circle()
+                        .trim(from: from, to: bonus > k ? to : from)
+                        .stroke(Theme.warm, style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                }
+                .transition(.opacity)
+            }
+            // The sweep: a solid gold ring drawn around the 10, which then fades away.
+            Circle()
+                .trim(from: 0, to: sweep)
+                .stroke(Theme.warm, style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                .opacity(sweepOpacity)
+        }
+        .rotationEffect(.degrees(-90))
+        .padding(-24)
+        .animation(.spring(response: 0.5, dampingFraction: 0.7), value: bonus)
+    }
+
+    private func revealGold() {
+        revealTask?.cancel()
+        if reduceMotion {
+            withAnimation(.easeIn(duration: 0.4)) { showGold = true }
+            return
+        }
+        revealTask = Task { @MainActor in
+            // Let the goal fanfare and confetti have their moment first.
+            try? await Task.sleep(for: .seconds(1.2))
+            guard !Task.isCancelled else { return }
+            sweep = 0
+            sweepOpacity = 1
+            withAnimation(.easeInOut(duration: 1.1)) { sweep = 1 }
+            try? await Task.sleep(for: .seconds(1.4))
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeOut(duration: 0.9)) {
+                sweepOpacity = 0
+                showGold = true
+            }
+        }
+    }
+
+    private func hideGold() {
+        revealTask?.cancel()
+        sweepOpacity = 0
+        sweep = 0
+        withAnimation(.easeOut(duration: 0.3)) { showGold = false }
     }
 }
 
-/// Three dots per set. The 4th set is drawn dashed: there if he wants it, never required.
+/// Turquoise dots for car walks come first (only once recorded), then teal dots up to the
+/// goal of 10, grouped in threes. Once he reaches 10, a gold group of 3 appears: 13 is the
+/// lucky number. Past 13, more gold dots keep appearing.
 struct SetDots: View {
     let laps: Int
+    let carWalks: Int
+    let showGold: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        let groups = max(4, Int(ceil(Double(laps) / 3)))
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 64), spacing: 10)], spacing: 10) {
-            ForEach(0..<groups, id: \.self) { g in
+        let groups = LapMath.goalGroups(carWalks: carWalks)
+        let needed = LapMath.lapsNeeded(carWalks: carWalks)
+        let goldLaps = max(0, laps - needed)
+        let goldGroups = showGold ? max(1, Int(ceil(Double(goldLaps) / 3))) : 0
+        let pop: AnyTransition = reduceMotion ? .opacity : .scale(scale: 0.3).combined(with: .opacity)
+
+        FlowLayout(spacing: 10) {
+            if carWalks > 0 {
                 HStack(spacing: 5) {
-                    ForEach(0..<3, id: \.self) { i in
-                        let index = g * 3 + i
-                        let filled = index < laps
-                        let bonus = g >= 3
-                        Circle()
-                            .fill(filled ? (bonus ? Theme.warm : Theme.teal) : Color.clear)
-                            .overlay(
-                                Circle().strokeBorder(
-                                    bonus ? Theme.warm : Theme.teal.opacity(0.45),
-                                    style: StrokeStyle(lineWidth: 2, dash: bonus && !filled ? [3, 3] : []))
-                            )
-                            .frame(width: 16, height: 16)
+                    ForEach(0..<carWalks, id: \.self) { _ in
+                        dot(filled: true, color: Theme.turquoise)
+                            .transition(pop)
+                    }
+                }
+                .padding(6)
+                .background(Capsule().fill(Theme.lightTurquoise))
+                .transition(pop)
+            }
+            ForEach(groups.indices, id: \.self) { g in
+                let start = groups.prefix(g).reduce(0, +)
+                HStack(spacing: 5) {
+                    ForEach(0..<groups[g], id: \.self) { i in
+                        dot(filled: start + i < laps, color: Theme.teal)
                     }
                 }
                 .padding(6)
                 .background(Capsule().fill(Theme.lightTeal.opacity(0.5)))
             }
+            ForEach(0..<goldGroups, id: \.self) { g in
+                HStack(spacing: 5) {
+                    ForEach(0..<3, id: \.self) { i in
+                        dot(filled: g * 3 + i < goldLaps, color: Theme.warm, dashed: true)
+                    }
+                }
+                .padding(6)
+                .background(Capsule().fill(Theme.warm.opacity(0.15)))
+                .transition(pop)
+            }
         }
+        .animation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.6), value: carWalks)
+        .animation(reduceMotion ? nil : .spring(response: 0.6, dampingFraction: 0.6), value: showGold)
         .accessibilityHidden(true)
+    }
+
+    private func dot(filled: Bool, color: Color, dashed: Bool = false) -> some View {
+        Circle()
+            .fill(filled ? color : Color.clear)
+            .overlay(
+                Circle().strokeBorder(
+                    filled ? color : color.opacity(dashed ? 1 : 0.45),
+                    style: StrokeStyle(lineWidth: 2, dash: dashed && !filled ? [3, 3] : []))
+            )
+            .frame(width: 16, height: 16)
+    }
+}
+
+/// Lays children out left to right, wrapping to a new centered row when one fills up.
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 10
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let rows = arrange(width: proposal.width ?? .infinity, subviews: subviews)
+        let width = rows.map(\.width).max() ?? 0
+        let height = rows.map(\.height).reduce(0, +) + spacing * CGFloat(max(0, rows.count - 1))
+        return CGSize(width: proposal.width ?? width, height: height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var y = bounds.minY
+        for row in arrange(width: bounds.width, subviews: subviews) {
+            var x = bounds.minX + (bounds.width - row.width) / 2
+            for i in row.items {
+                let size = subviews[i].sizeThatFits(.unspecified)
+                subviews[i].place(at: CGPoint(x: x, y: y + (row.height - size.height) / 2), proposal: .unspecified)
+                x += size.width + spacing
+            }
+            y += row.height + spacing
+        }
+    }
+
+    private struct Row { var items: [Int] = []; var width: CGFloat = 0; var height: CGFloat = 0 }
+
+    private func arrange(width: CGFloat, subviews: Subviews) -> [Row] {
+        var rows: [Row] = [], row = Row()
+        for (i, view) in subviews.enumerated() {
+            let size = view.sizeThatFits(.unspecified)
+            let extra = row.items.isEmpty ? size.width : row.width + spacing + size.width
+            if !row.items.isEmpty && extra > width {
+                rows.append(row)
+                row = Row()
+            }
+            row.width = row.items.isEmpty ? size.width : row.width + spacing + size.width
+            row.height = max(row.height, size.height)
+            row.items.append(i)
+        }
+        if !row.items.isEmpty { rows.append(row) }
+        return rows
     }
 }
 

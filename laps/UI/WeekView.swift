@@ -99,7 +99,7 @@ struct WeekChart: View {
     let todayKey: String
 
     var body: some View {
-        let top = max(LapMath.bonusGoal, days.map(\.laps).max() ?? 0) + 2
+        let top = max(LapMath.dailyGoal, days.map(\.laps).max() ?? 0) + 2
 
         Chart {
             ForEach(days, id: \.key) { day in
@@ -123,12 +123,7 @@ struct WeekChart: View {
                 .foregroundStyle(Theme.teal)
                 .lineStyle(StrokeStyle(lineWidth: 2))
                 .accessibilityLabel("Daily goal")
-                .accessibilityValue("9 laps")
-
-            RuleMark(y: .value("Four sets", LapMath.bonusGoal))
-                .foregroundStyle(Theme.warm.opacity(0.8))
-                .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 4]))
-                .accessibilityHidden(true)
+                .accessibilityValue("\(LapMath.dailyGoal)")
         }
         .chartYScale(domain: 0...top)
         .chartYAxis {
