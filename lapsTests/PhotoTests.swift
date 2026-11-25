@@ -219,4 +219,14 @@ final class PhotoTests: XCTestCase {
         photos.updateSettings { $0.isOn = false }
         XCTAssertNil(photos.pictureForToday("2026-11-25"))
     }
+
+    func testGalleryListsFinishedPicturesNewestFirst() async {
+        let photos = PhotoStore(folder: folder)
+        await photos.add((0..<3).map { _ in photoData(width: 400, height: 500) })
+        photos.sync(day: "2026-11-23", walking: 20, standing: 20)
+        photos.sync(day: "2026-11-24", walking: 2, standing: 0)       // unfinished: not in the gallery
+        photos.sync(day: "2026-11-25", walking: 20, standing: 20)
+        XCTAssertEqual(photos.gallery.map(\.day), ["2026-11-25", "2026-11-23"])
+        XCTAssertEqual(PhotoStore(folder: folder).gallery.count, 2)
+    }
 }

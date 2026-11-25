@@ -243,6 +243,11 @@ final class PhotoStore {
 
     // MARK: - Gallery copies
 
+    /// Every finished picture, newest first.
+    var gallery: [DailyPicture] {
+        data.days.values.filter(\.isComplete).sorted { $0.day > $1.day }
+    }
+
     nonisolated func galleryURL(_ day: String, _ kind: Kind) -> URL {
         folder.appendingPathComponent("Gallery", isDirectory: true)
             .appendingPathComponent("\(day)-\(kind.rawValue).jpg")

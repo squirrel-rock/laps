@@ -46,9 +46,11 @@ struct PictureView: View {
                     .card()
 
                     ChallengeCard(walking: walking, standing: standing)
+                    GallerySection()
                 } else {
                     message("No photos yet.",
                             detail: "Add some in Reminders → Picture reward → Manage photos, and a new one will appear here each day.")
+                    if !photos.gallery.isEmpty { GallerySection() }
                 }
             }
             .padding(.horizontal, 20)
@@ -217,5 +219,144 @@ struct FullScreenPicture: View {
             .foregroundStyle(.white)
             .padding(20)
         }
+    }
+}
+
+// MARK: - Gallery
+
+/// His finished pictures, newest first, grouped by month.
+private struct GallerySection: View {
+    @Environment(PhotoStore.self) private var photos
+    @Environment(WalkStore.self) private var store
+
+    var body: some View {
+        let done = photos.gallery
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Your gallery")
+                .font(.system(.title2, design: .rounded).weight(.bold))
+                .foregroundStyle(Theme.text)
+            if done.isEmpty {
+                Text("Each picture you finish is kept here, with the date and what you did that day.")
+                    .font(.system(.body, design: .rounded))
+                    .foregroundStyle(Theme.secondaryText)
+            } else {
+                ForEach(months(done), id: \.title) { month in
+                    Text(month.title)
+                        .font(.system(.headline, design: .rounded))
+                        .foregroundStyle(Theme.secondaryText)
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 14) {
+                        ForEach(month.pictures, id: \.day) { p in
+                            NavigationLink {
+                                GalleryDetailView(picture: p)
+                            } label: {
+                                VStack(spacing: 6) {
+                                    Group {
+                                        if let img = photos.dayImage(p, .thumb) {
+                                            Image(uiImage: img).resizable().aspectRatio(CropRect.aspect, contentMode: .fit)
+                                        } else {
+                                            Theme.tileCover.aspectRatio(CropRect.aspect, contentMode: .fit)
+                                        }
+                                    }
+                                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                    Text(shortDate(p.day))
+                                        .font(.system(.subheadline, design: .rounded))
+                                        .foregroundStyle(Theme.text)
+                                }
+                            }
+                            .accessibilityLabel("Picture from \(longDate(p.day))")
+                            .accessibilityHint("Shows it larger, with what you did that day")
+                        }
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .card()
+    }
+
+    private struct Month { let title: String; let pictures: [DailyPicture] }
+
+    private func months(_ list: [DailyPicture]) -> [Month] {
+        var out: [Month] = []
+        for p in list {
+            let title = store.date(forKey: p.day)?.formatted(.dateTime.month(.wide).year()) ?? ""
+            if out.last?.title == title {
+                out[out.count - 1] = Month(title: title, pictures: out[out.count - 1].pictures + [p])
+            } else {
+                out.append(Month(title: title, pictures: [p]))
+            }
+        }
+        return out
+    }
+
+    private func shortDate(_ key: String) -> String {
+        if key == store.todayKey { return "Today" }
+        return store.date(forKey: key)?.formatted(.dateTime.month(.abbreviated).day()) ?? key
+    }
+
+    private func longDate(_ key: String) -> String {
+        store.date(forKey: key)?.formatted(.dateTime.weekday(.wide).month(.wide).day()) ?? key
+    }
+}
+
+/// One finished picture: larger, with the date, the challenge he reached, and his day.
+struct GalleryDetailView: View {
+    @Environment(PhotoStore.self) private var photos
+    @Environment(WalkStore.self) private var store
+    let picture: DailyPicture
+    @State private var fullScreen = false
+
+    var body: some View {
+        let record = store.record(for: picture.day)
+        let image = photos.dayImage(picture)
+
+        ScrollView {
+            VStack(spacing: 18) {
+                if let image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(CropRect.aspect, contentMode: .fit)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .onTapGesture { fullScreen = true }
+                        .accessibilityLabel("The finished picture")
+                        .accessibilityHint("Shows it full screen")
+                        .accessibilityAddTraits(.isButton)
+                }
+
+                VStack(spacing: 0) {
+                    if let tiles = picture.completedTiles {
+                        SummaryRow(title: "Challenge",
+                                   value: "\(tiles) tiles" + (picture.completedMode.map { ", \($0.title)" } ?? ""))
+                        Divider()
+                    }
+                    SummaryRow(title: "Walking", value: "\(record.walkingCredits)")
+                    Divider()
+                    SummaryRow(title: "That's", value: LapMath.walkingDescription(laps: record.lapCount, carWalks: record.carWalks))
+                    Divider()
+                    SummaryRow(title: "Times up", value: "\(record.standingCredits)")
+                }
+                .card()
+
+                if let image {
+                    ShareLink(item: Image(uiImage: image),
+                              preview: SharePreview("Picture from \(title)", image: Image(uiImage: image))) {
+                        Label("Save or share", systemImage: "square.and.arrow.up")
+                    }
+                    .buttonStyle(SecondaryButtonStyle(minHeight: 64))
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+        }
+        .background(Theme.background.ignoresSafeArea())
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
+        .fullScreenCover(isPresented: $fullScreen) {
+            if let image { FullScreenPicture(image: image) }
+        }
+    }
+
+    private var title: String {
+        store.date(forKey: picture.day)?.formatted(.dateTime.weekday(.wide).month(.abbreviated).day()) ?? picture.day
     }
 }
