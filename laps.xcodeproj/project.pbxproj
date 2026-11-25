@@ -8,16 +8,18 @@
 
 /* Begin PBXBuildFile section */
 		10ACB78BA35C7859B5DB257E /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67AD760036C8739C5FC89366 /* NotificationScheduler.swift */; };
+		16874861471FB695A66D710D /* lapE.wav in Resources */ = {isa = PBXBuildFile; fileRef = 5665E3D532A618C4BF148B30 /* lapE.wav */; };
 		1C404E78CB2625CCA6F4F079 /* standup.wav in Resources */ = {isa = PBXBuildFile; fileRef = 86EF1C79D6C8BF72A60D78D3 /* standup.wav */; };
+		1EB9E6D44323AB98C1CC9B55 /* lapC.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1DA8E52E8B871B9207C9BB2C /* lapC.wav */; };
 		29E841B3EF9A6126A9AE5FE6 /* LapMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FB2D3293D126013D1C9A81 /* LapMath.swift */; };
 		48A959CA576DC7F1DF46771E /* StandUpViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9B3B1321C5BB75F34B8B9D /* StandUpViews.swift */; };
 		5DDD6D2EE45C5AB7866A22C0 /* WeekView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD4D3D2AFAEDF1DC645EAAE /* WeekView.swift */; };
-		5F7E9DD82B03C737E8C9A6B5 /* lap.wav in Resources */ = {isa = PBXBuildFile; fileRef = F6DB5B5EAED622C03864CEF6 /* lap.wav */; };
 		63305FA9D17012A9D394EB1D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F97E9ED8B2D9B879E14CE4EF /* Assets.xcassets */; };
 		6D0ED5EC6C13236FDD700229 /* Sounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E6C2F865EA4DD3E310A0CEE /* Sounds.swift */; };
 		6FFCD7D6BE548A2D57AF56B4 /* DayDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69F1E91943E098557FE6E8D9 /* DayDetailView.swift */; };
 		7286A9CAA627A66557B0B610 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5395D45368020C0A2B81885C /* Theme.swift */; };
 		854E5A501E5D2D83C22E4061 /* EverydayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5066DC84F4707593D0EFE25 /* EverydayView.swift */; };
+		8F0A827C379AFBDEF0CCC67F /* lapG.wav in Resources */ = {isa = PBXBuildFile; fileRef = 97C806E27C1F932C10E339DB /* lapG.wav */; };
 		90A461BFD655BF8657DA3D78 /* WalkStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F244F8EEB7AF0FF885443E4 /* WalkStore.swift */; };
 		97816C81CFAC4EFE60C7FEAD /* LapsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7EDA313F3B9F28367BCE8F1 /* LapsApp.swift */; };
 		982AEB9ED6468782F80D31FF /* set.wav in Resources */ = {isa = PBXBuildFile; fileRef = F21EE0B699095F50912F41E8 /* set.wav */; };
@@ -46,9 +48,11 @@
 /* Begin PBXFileReference section */
 		09BFD9ACBE258A247A4FC911 /* ReminderPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderPlanner.swift; sourceTree = "<group>"; };
 		09F6A28BA2BD599854FE9C05 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		1DA8E52E8B871B9207C9BB2C /* lapC.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = lapC.wav; sourceTree = "<group>"; };
 		21D5C29DC3B333A7A1C6FF20 /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
 		3CCB8A4F232EED3592941B12 /* laps.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = laps.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5395D45368020C0A2B81885C /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		5665E3D532A618C4BF148B30 /* lapE.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = lapE.wav; sourceTree = "<group>"; };
 		67AD760036C8739C5FC89366 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScheduler.swift; sourceTree = "<group>"; };
 		69F1E91943E098557FE6E8D9 /* DayDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayDetailView.swift; sourceTree = "<group>"; };
 		7350DFB441E4A25884D2CF42 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
@@ -59,6 +63,7 @@
 		8D227490BE35FB10439EFA76 /* StandUps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandUps.swift; sourceTree = "<group>"; };
 		8E6C2F865EA4DD3E310A0CEE /* Sounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sounds.swift; sourceTree = "<group>"; };
 		942BED155990172B8BF03287 /* RemindersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersView.swift; sourceTree = "<group>"; };
+		97C806E27C1F932C10E339DB /* lapG.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = lapG.wav; sourceTree = "<group>"; };
 		9B9B3B1321C5BB75F34B8B9D /* StandUpViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandUpViews.swift; sourceTree = "<group>"; };
 		9FD4D3D2AFAEDF1DC645EAAE /* WeekView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekView.swift; sourceTree = "<group>"; };
 		A5066DC84F4707593D0EFE25 /* EverydayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EverydayView.swift; sourceTree = "<group>"; };
@@ -68,7 +73,6 @@
 		DA965E6024F24FE0026E6E55 /* lapsTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = lapsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E7EDA313F3B9F28367BCE8F1 /* LapsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LapsApp.swift; sourceTree = "<group>"; };
 		F21EE0B699095F50912F41E8 /* set.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = set.wav; sourceTree = "<group>"; };
-		F6DB5B5EAED622C03864CEF6 /* lap.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = lap.wav; sourceTree = "<group>"; };
 		F97E9ED8B2D9B879E14CE4EF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -95,7 +99,9 @@
 			isa = PBXGroup;
 			children = (
 				785E3DF064A3960C9BC7B4A9 /* goal.wav */,
-				F6DB5B5EAED622C03864CEF6 /* lap.wav */,
+				1DA8E52E8B871B9207C9BB2C /* lapC.wav */,
+				5665E3D532A618C4BF148B30 /* lapE.wav */,
+				97C806E27C1F932C10E339DB /* lapG.wav */,
 				F21EE0B699095F50912F41E8 /* set.wav */,
 				86EF1C79D6C8BF72A60D78D3 /* standup.wav */,
 			);
@@ -254,7 +260,9 @@
 			files = (
 				63305FA9D17012A9D394EB1D /* Assets.xcassets in Resources */,
 				FA8236C9CC606BCE17A4CD6D /* goal.wav in Resources */,
-				5F7E9DD82B03C737E8C9A6B5 /* lap.wav in Resources */,
+				1EB9E6D44323AB98C1CC9B55 /* lapC.wav in Resources */,
+				16874861471FB695A66D710D /* lapE.wav in Resources */,
+				8F0A827C379AFBDEF0CCC67F /* lapG.wav in Resources */,
 				982AEB9ED6468782F80D31FF /* set.wav in Resources */,
 				1C404E78CB2625CCA6F4F079 /* standup.wav in Resources */,
 			);
@@ -383,7 +391,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 6Y4GKX652F;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -484,7 +492,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 6Y4GKX652F;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;

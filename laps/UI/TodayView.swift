@@ -206,7 +206,7 @@ struct TodayView: View {
         let total = animateReturning { store.recordLap() }
         lapTick += 1
         let moment = LapMath.moment(afterLap: total)
-        Sounds.play(for: moment, enabled: store.settings.soundOn)
+        Sounds.playLap(total: total, enabled: store.settings.soundOn)
         if moment.isBig { Haptics.celebrate() }
         show(Celebration(moment: moment, message: LapMath.message(afterLap: total)))
     }

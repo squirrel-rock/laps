@@ -81,7 +81,7 @@ struct EverydayView: View {
         let trimmed = note.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         store.addEveryday(trimmed)
-        Sounds.play(.lap, enabled: store.settings.soundOn)
+        Sounds.play(.lapC, enabled: store.settings.soundOn)
         withAnimation { justAdded = trimmed }
         Task {
             try? await Task.sleep(for: .seconds(3))

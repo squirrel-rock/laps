@@ -66,6 +66,10 @@ final class LapMathTests: XCTestCase {
         XCTAssertEqual(LapMath.moment(afterLap: 16), .bonusLap)
     }
 
+    func testEachSetClimbsCEG() {
+        XCTAssertEqual((1...7).map(Sounds.lapNote(forLap:)), [.lapC, .lapE, .lapG, .lapC, .lapE, .lapG, .lapC])
+    }
+
     func testAfterGoalWordingEncouragesFourthSetGently() {
         XCTAssertTrue(LapMath.statusLine(9).contains("only if you feel up to it"))
         XCTAssertTrue(LapMath.statusLine(10).contains("2 more laps"))

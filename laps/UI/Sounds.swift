@@ -1,10 +1,10 @@
 import AVFoundation
 
 enum SoundEffect: String {
-    case lap, set, goal, standup
+    case lapC, lapE, lapG, set, goal, standup
 }
 
-/// The app's own cheerful sounds. They play even when the ring/silent switch is on silent
+/// The app's own sounds. They play even when the ring/silent switch is on silent
 /// (Richard asked for sounds), and can be turned off on the Reminders tab.
 @MainActor
 enum Sounds {
@@ -24,11 +24,30 @@ enum Sounds {
         players[effect]?.play()
     }
 
-    static func play(for moment: LapMath.Moment, enabled: Bool) {
-        switch moment {
-        case .lap, .bonusLap: play(.lap, enabled: enabled)
-        case .set: play(.set, enabled: enabled)
-        case .goal, .fourSets, .extraSet: play(.goal, enabled: enabled)
+    /// Each set climbs C, E, G (tuning-fork tones). The 3rd lap's G leads into the
+    /// happy set sound, or the fanfare at 9 and 12 laps.
+    static func playLap(total: Int, enabled: Bool) {
+        play(lapNote(forLap: total), enabled: enabled)
+        let finish: SoundEffect?
+        switch LapMath.moment(afterLap: total) {
+        case .set: finish = .set
+        case .goal, .fourSets, .extraSet: finish = .goal
+        case .lap, .bonusLap: finish = nil
+        }
+        if let finish {
+            Task {
+                try? await Task.sleep(for: .milliseconds(650))
+                play(finish, enabled: enabled)
+            }
+        }
+    }
+
+    /// Lap 1, 2, 3 of each set → C, E, G.
+    nonisolated static func lapNote(forLap total: Int) -> SoundEffect {
+        switch (max(1, total) - 1) % 3 {
+        case 0: return .lapC
+        case 1: return .lapE
+        default: return .lapG
         }
     }
 }
