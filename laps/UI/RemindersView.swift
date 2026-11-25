@@ -64,6 +64,8 @@ struct RemindersView: View {
 
             StandUpSettingsSection()
 
+            PictureSettingsSection()
+
             Section {
                 Toggle("Sounds", isOn: Binding(
                     get: { store.settings.soundOn },
@@ -192,5 +194,71 @@ struct StandUpSettingsSection: View {
                 s[keyPath: minute] = c.minute ?? s[keyPath: minute]
                 store.updateStandUpSettings(s)
             })
+    }
+}
+
+/// The daily picture reward: on/off, challenge, mode, and the photo collection.
+struct PictureSettingsSection: View {
+    @Environment(PhotoStore.self) private var photos
+
+    var body: some View {
+        let s = photos.settings
+        Section {
+            Toggle("Daily picture", isOn: Binding(
+                get: { s.isOn }, set: { on in photos.updateSettings { $0.isOn = on } }))
+                .frame(minHeight: 48)
+
+            if s.isOn {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Picture challenge")
+                    Picker("Picture challenge", selection: Binding(
+                        get: { s.tiles }, set: { t in photos.updateSettings { $0.tiles = t } })) {
+                        ForEach(PictureSettings.tileChoices, id: \.self) { Text("\($0) tiles").tag($0) }
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                }
+                .padding(.vertical, 6)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Reward mode")
+                    Picker("Reward mode", selection: Binding(
+                        get: { s.mode }, set: { m in photos.updateSettings { $0.mode = m } })) {
+                        ForEach(RewardMode.allCases) { Text($0.title).tag($0) }
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    Text(modeExplanation(s))
+                        .font(.subheadline)
+                        .foregroundStyle(Theme.secondaryText)
+                }
+                .padding(.vertical, 6)
+
+                NavigationLink {
+                    PhotoLibraryView()
+                } label: {
+                    HStack {
+                        Text("Manage photos")
+                        Spacer()
+                        Text("\(photos.activePhotos.count)")
+                            .foregroundStyle(Theme.secondaryText)
+                    }
+                    .frame(minHeight: 48)
+                }
+            }
+        } header: {
+            Text("Picture reward")
+        } footer: {
+            Text("Each day brings a new photo, uncovered a piece at a time as you walk and stand up. Changing these never changes your activity records.")
+        }
+    }
+
+    private func modeExplanation(_ s: PictureSettings) -> String {
+        switch s.mode {
+        case .determined:
+            return "10 walking, then standing up for the rest. Gold laps count too."
+        case .flexible:
+            return "Any mix of walking and standing up."
+        }
     }
 }

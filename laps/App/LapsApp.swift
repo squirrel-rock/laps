@@ -10,6 +10,7 @@ struct LapsApp: App {
         WindowGroup {
             RootView()
                 .environment(AppDelegate.store)
+                .environment(AppDelegate.photos)
                 .tint(Theme.teal)
                 .task {
                     #if DEBUG
@@ -31,6 +32,7 @@ struct LapsApp: App {
 
 final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     @MainActor static let store = WalkStore(scheduler: NotificationScheduler())
+    @MainActor static let photos = PhotoStore()
 
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
