@@ -226,6 +226,31 @@ final class WalkStoreTests: XCTestCase {
         XCTAssertEqual(store.record(for: "2026-11-23").lapCount, 12)
     }
 
+    func testWeekBarsSplitIntoCarWalksLapsAndGold() {
+        let d = WeekDay(key: "k", date: .now, laps: 11, carWalks: 1, standing: 0, lotion: false)
+        XCTAssertEqual(d.walking, 12)
+        XCTAssertTrue(d.walkingParts == (1, 9, 2))
+        let noCar = WeekDay(key: "k", date: .now, laps: 7, carWalks: 0, standing: 0, lotion: false)
+        XCTAssertTrue(noCar.walkingParts == (0, 7, 0))
+    }
+
+    func testWeekStandingBarsSplitIntoLotionVioletAndGold() {
+        let d = WeekDay(key: "k", date: .now, laps: 0, carWalks: 0, standing: 12, lotion: true)
+        XCTAssertTrue(d.standingParts(goal: 10) == (1, 9, 2))
+        let noLotion = WeekDay(key: "k", date: .now, laps: 0, carWalks: 0, standing: 4, lotion: false)
+        XCTAssertTrue(noLotion.standingParts(goal: 10) == (0, 4, 0))
+    }
+
+    func testWeekIncludesCarWalksAndStanding() {
+        let store = makeStore()
+        store.recordLap()
+        store.addEveryday(EverydayEntry.carWalk)
+        store.recordStoodUp()
+        let today = store.lastSevenDays().last!
+        XCTAssertEqual(today.walking, 2)
+        XCTAssertEqual(today.standing, 1)
+    }
+
     func testSessionLeftOpenOvernightIsClosedIntoItsOwnDay() {
         let store = makeStore()
         store.recordLap(); store.recordLap()

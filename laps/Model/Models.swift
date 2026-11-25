@@ -173,3 +173,30 @@ extension AppData {
         active = try c.decodeIfPresent(ActiveSession.self, forKey: .active)
     }
 }
+
+/// One day on the This Week charts.
+struct WeekDay: Equatable {
+    var key: String
+    var date: Date
+    var laps: Int
+    var carWalks: Int
+    /// Times up, including the face lotion.
+    var standing: Int
+    var lotion: Bool
+
+    var walking: Int { laps + carWalks }
+
+    /// Walking bar from the bottom: car walks (turquoise), laps up to the goal (teal), then gold.
+    var walkingParts: (carWalks: Int, laps: Int, gold: Int) {
+        let teal = min(laps, max(0, LapMath.dailyGoal - carWalks))
+        return (carWalks, teal, laps - teal)
+    }
+
+    /// Standing bar from the bottom: lotion (rose), times up to the goal (violet), then gold.
+    func standingParts(goal: Int) -> (lotion: Int, violet: Int, gold: Int) {
+        let l = lotion ? 1 : 0
+        let others = standing - l
+        let violet = min(others, max(0, goal - l))
+        return (l, violet, others - violet)
+    }
+}

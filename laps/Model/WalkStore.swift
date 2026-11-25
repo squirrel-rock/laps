@@ -66,9 +66,11 @@ final class WalkStore {
     }
 
     /// Lap totals for the last 7 days including today, oldest first. Read from saved records.
-    func lastSevenDays() -> [(key: String, date: Date, laps: Int)] {
+    func lastSevenDays() -> [WeekDay] {
         dayKey.lastDays(7, endingAt: now()).map { key in
-            (key, dayKey.date(for: key) ?? now(), record(for: key).lapCount)
+            let r = record(for: key)
+            return WeekDay(key: key, date: dayKey.date(for: key) ?? now(), laps: r.lapCount, carWalks: r.carWalks,
+                           standing: r.standingCredits, lotion: r.lotionDoneAt != nil)
         }
     }
 

@@ -8,7 +8,7 @@ A small, standalone iPhone app that helps Richard keep up his daily indoor walki
 ## What it does
 
 - **Today:** one big "Completed a lap!" button, a progress ring toward 10, and dots: turquoise for car walks, teal sets of 3, then gold bonus dots once he reaches 10. Includes "Bathroom break" (pauses and reminds after 10 min), "Finished for now", "Remind me later" (30 min), and "Undo last lap" (asks first).
-- **This Week:** a Swift Charts bar chart of the last 7 days, with a goal line at 9 and a dashed line at 12. Shows the weekly total, sets, and best day. Tap any day to fix mistakes.
+- **This Week:** two stacked Swift Charts bar charts of the last 7 days. Walking: car walks (turquoise), laps up to 10 (teal), then gold, with a goal line at 10. Standing up: face lotion (rose), times up to the goal (violet), then gold, with a goal line at the standing goal. Shows weekly totals. Tap any day to fix mistakes.
 - **Standing up** (on Today, below the laps): a violet ring and pills toward a daily goal of 10 (adjustable on the Reminders tab). A big "I stood up" button, "Give me an idea" for suggestions, and the face lotion as a rose pill that counts once a day. Extras past the goal are gold.
 - **Everyday:** "Walked to the car" (earns a walking credit, with Undo) or a custom note (doesn't).
 - **Reminders:** editable times (default 7:30 AM, 1:00 PM, 4:00 PM), pause for today, and a sounds on/off switch.
