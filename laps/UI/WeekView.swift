@@ -27,16 +27,16 @@ struct WeekView: View {
                     goalText: "Goal: \(LapMath.dailyGoal)", goalColor: Theme.teal)
 
                 chartCard(
-                    title: "Standing up each day",
+                    title: "Activities each day",
                     chart: StackedWeekChart(
                         days: days, todayKey: store.todayKey, goal: goal,
                         goalColor: Theme.purple, numberColor: Theme.darkPurple,
-                        what: "times up",
+                        what: "activities",
                         parts: { d in
                             let p = d.standingParts(goal: goal)
                             return [(p.lotion, Theme.cream), (p.violet, Theme.violet), (p.gold, Theme.warm)]
                         }),
-                    legend: [("Face lotion", Theme.cream), ("Stood up", Theme.violet), ("Gold bonus", Theme.warm)],
+                    legend: [("Face wash", Theme.cream), ("Activity", Theme.violet), ("Gold bonus", Theme.warm)],
                     goalText: "Goal: \(goal)", goalColor: Theme.purple)
 
                 VStack(spacing: 0) {
@@ -44,7 +44,7 @@ struct WeekView: View {
                     Divider()
                     SummaryRow(title: "Laps", value: "\(laps) (\(LapMath.setsShort(laps)))")
                     Divider()
-                    SummaryRow(title: "Times up this week", value: "\(standing)")
+                    SummaryRow(title: "Activities this week", value: "\(standing)")
                 }
                 .card()
 
@@ -74,7 +74,7 @@ struct WeekView: View {
                                 .frame(minHeight: 52)
                                 .contentShape(Rectangle())
                                 .accessibilityElement(children: .ignore)
-                                .accessibilityLabel("\(dayTitle(day.day)): \(day.walkingCredits) walking, \(day.standingCredits) times up")
+                                .accessibilityLabel("\(dayTitle(day.day)): \(day.walkingCredits) walking, \(day.standingCredits) activities")
                             }
                             .accessibilityHint("Shows details and lets you fix mistakes")
                             Divider()

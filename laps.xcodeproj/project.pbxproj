@@ -15,8 +15,8 @@
 		1C78F89A70813C64A2BC6744 /* PhotoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16FAFF2943F8077098AE3D05 /* PhotoTests.swift */; };
 		1EB9E6D44323AB98C1CC9B55 /* lapC.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1DA8E52E8B871B9207C9BB2C /* lapC.wav */; };
 		29E841B3EF9A6126A9AE5FE6 /* LapMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FB2D3293D126013D1C9A81 /* LapMath.swift */; };
+		34A9098913AD870EE2280095 /* ActivityRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7644AE5990389FF999121B1F /* ActivityRing.swift */; };
 		408E5A19AB0EDBAFD5D9AC21 /* PhotoModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D4313F3AF2DAC09791D591C /* PhotoModels.swift */; };
-		48A959CA576DC7F1DF46771E /* StandUpViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9B3B1321C5BB75F34B8B9D /* StandUpViews.swift */; };
 		4A525E0B0C6F8E4B72A8F41D /* PhotoStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B164FDC666B6FA23752C1E9 /* PhotoStore.swift */; };
 		5DDD6D2EE45C5AB7866A22C0 /* WeekView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD4D3D2AFAEDF1DC645EAAE /* WeekView.swift */; };
 		63305FA9D17012A9D394EB1D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F97E9ED8B2D9B879E14CE4EF /* Assets.xcassets */; };
@@ -26,22 +26,24 @@
 		6FFCD7D6BE548A2D57AF56B4 /* DayDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69F1E91943E098557FE6E8D9 /* DayDetailView.swift */; };
 		7286A9CAA627A66557B0B610 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5395D45368020C0A2B81885C /* Theme.swift */; };
 		7A543F0349F216A93DFFCBD9 /* StandingMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4CC4D721015665DE79E384 /* StandingMath.swift */; };
-		854E5A501E5D2D83C22E4061 /* EverydayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5066DC84F4707593D0EFE25 /* EverydayView.swift */; };
+		89CF3C96685E65D076979AC1 /* Activities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85B3B057B98A7D1F03436D44 /* Activities.swift */; };
 		8F0A827C379AFBDEF0CCC67F /* lapG.wav in Resources */ = {isa = PBXBuildFile; fileRef = 97C806E27C1F932C10E339DB /* lapG.wav */; };
 		90A461BFD655BF8657DA3D78 /* WalkStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F244F8EEB7AF0FF885443E4 /* WalkStore.swift */; };
 		97816C81CFAC4EFE60C7FEAD /* LapsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7EDA313F3B9F28367BCE8F1 /* LapsApp.swift */; };
 		982AEB9ED6468782F80D31FF /* set.wav in Resources */ = {isa = PBXBuildFile; fileRef = F21EE0B699095F50912F41E8 /* set.wav */; };
+		A32B7CC5D8D039CCEC759885 /* Celebration.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09572A53E3F5DD5220FC05D /* Celebration.swift */; };
 		AB02293D1B95F6C43E2F64F5 /* StandUps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D227490BE35FB10439EFA76 /* StandUps.swift */; };
+		ADD87C44467F680ABCDB85D5 /* ActivitiesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6EA6A5304C0665E101A4D42 /* ActivitiesView.swift */; };
 		BB871ACC1D8D6E3CA6C1E7A6 /* lapsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACC70487C43145E7823B0FB0 /* lapsTests.swift */; };
 		BEFA719BCDA503D88615AB3F /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7985CBA6CA5F24FC53A8E8C0 /* Models.swift */; };
 		C7AC29EF7569C3A0CA40F77C /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09F6A28BA2BD599854FE9C05 /* RootView.swift */; };
 		D5491986876D7098F1AD0E32 /* PictureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B9A7B807229C83A60BA1EF /* PictureView.swift */; };
 		DD8D59FBBBF7AC3BE8231FA4 /* DayKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B404B6CAF3EA2E01C7FBD7 /* DayKey.swift */; };
-		E04DCE682096A2237755914E /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7350DFB441E4A25884D2CF42 /* TodayView.swift */; };
 		EBAFEF6F9D6DED34E65CF14D /* RemindersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 942BED155990172B8BF03287 /* RemindersView.swift */; };
 		F9E1D20ADAC24E540990D095 /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21D5C29DC3B333A7A1C6FF20 /* Haptics.swift */; };
 		FA8236C9CC606BCE17A4CD6D /* goal.wav in Resources */ = {isa = PBXBuildFile; fileRef = 785E3DF064A3960C9BC7B4A9 /* goal.wav */; };
 		FE5AE8DD270FC35B38C9A7FA /* ReminderPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09BFD9ACBE258A247A4FC911 /* ReminderPlanner.swift */; };
+		FF7125FB70E00CF2045AFC44 /* LapsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FD43048F4C46F8421E55ED /* LapsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -68,28 +70,30 @@
 		67AD760036C8739C5FC89366 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScheduler.swift; sourceTree = "<group>"; };
 		69F1E91943E098557FE6E8D9 /* DayDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayDetailView.swift; sourceTree = "<group>"; };
 		6A465FA54F6FDD88195C1F48 /* PhotoCropView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoCropView.swift; sourceTree = "<group>"; };
-		7350DFB441E4A25884D2CF42 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
+		7644AE5990389FF999121B1F /* ActivityRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityRing.swift; sourceTree = "<group>"; };
 		785E3DF064A3960C9BC7B4A9 /* goal.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = goal.wav; sourceTree = "<group>"; };
 		7985CBA6CA5F24FC53A8E8C0 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		7B84224D5DA48D4F9E057AA3 /* PhotoLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryView.swift; sourceTree = "<group>"; };
 		7F244F8EEB7AF0FF885443E4 /* WalkStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalkStore.swift; sourceTree = "<group>"; };
+		85B3B057B98A7D1F03436D44 /* Activities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Activities.swift; sourceTree = "<group>"; };
 		86EF1C79D6C8BF72A60D78D3 /* standup.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = standup.wav; sourceTree = "<group>"; };
 		8D227490BE35FB10439EFA76 /* StandUps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandUps.swift; sourceTree = "<group>"; };
 		8E6C2F865EA4DD3E310A0CEE /* Sounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sounds.swift; sourceTree = "<group>"; };
 		942BED155990172B8BF03287 /* RemindersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersView.swift; sourceTree = "<group>"; };
 		97C806E27C1F932C10E339DB /* lapG.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = lapG.wav; sourceTree = "<group>"; };
-		9B9B3B1321C5BB75F34B8B9D /* StandUpViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandUpViews.swift; sourceTree = "<group>"; };
 		9FD4D3D2AFAEDF1DC645EAAE /* WeekView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekView.swift; sourceTree = "<group>"; };
 		A1B9A7B807229C83A60BA1EF /* PictureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PictureView.swift; sourceTree = "<group>"; };
-		A5066DC84F4707593D0EFE25 /* EverydayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EverydayView.swift; sourceTree = "<group>"; };
 		A67B629EB660E9CA64F708D0 /* PictureMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PictureMath.swift; sourceTree = "<group>"; };
+		A6FD43048F4C46F8421E55ED /* LapsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LapsView.swift; sourceTree = "<group>"; };
 		ACC70487C43145E7823B0FB0 /* lapsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = lapsTests.swift; sourceTree = "<group>"; };
 		AE4CC4D721015665DE79E384 /* StandingMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandingMath.swift; sourceTree = "<group>"; };
 		B4B404B6CAF3EA2E01C7FBD7 /* DayKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayKey.swift; sourceTree = "<group>"; };
 		BD3E9B61910766697EB5741D /* ImageTools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageTools.swift; sourceTree = "<group>"; };
 		C0FB2D3293D126013D1C9A81 /* LapMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LapMath.swift; sourceTree = "<group>"; };
+		D6EA6A5304C0665E101A4D42 /* ActivitiesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivitiesView.swift; sourceTree = "<group>"; };
 		DA965E6024F24FE0026E6E55 /* lapsTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = lapsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E7EDA313F3B9F28367BCE8F1 /* LapsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LapsApp.swift; sourceTree = "<group>"; };
+		F09572A53E3F5DD5220FC05D /* Celebration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Celebration.swift; sourceTree = "<group>"; };
 		F21EE0B699095F50912F41E8 /* set.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = set.wav; sourceTree = "<group>"; };
 		F97E9ED8B2D9B879E14CE4EF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -160,18 +164,19 @@
 		C0DA7F8C8FEF4F54BC10D7E7 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				D6EA6A5304C0665E101A4D42 /* ActivitiesView.swift */,
+				7644AE5990389FF999121B1F /* ActivityRing.swift */,
+				F09572A53E3F5DD5220FC05D /* Celebration.swift */,
 				69F1E91943E098557FE6E8D9 /* DayDetailView.swift */,
-				A5066DC84F4707593D0EFE25 /* EverydayView.swift */,
 				21D5C29DC3B333A7A1C6FF20 /* Haptics.swift */,
+				A6FD43048F4C46F8421E55ED /* LapsView.swift */,
 				6A465FA54F6FDD88195C1F48 /* PhotoCropView.swift */,
 				7B84224D5DA48D4F9E057AA3 /* PhotoLibraryView.swift */,
 				A1B9A7B807229C83A60BA1EF /* PictureView.swift */,
 				942BED155990172B8BF03287 /* RemindersView.swift */,
 				09F6A28BA2BD599854FE9C05 /* RootView.swift */,
 				8E6C2F865EA4DD3E310A0CEE /* Sounds.swift */,
-				9B9B3B1321C5BB75F34B8B9D /* StandUpViews.swift */,
 				5395D45368020C0A2B81885C /* Theme.swift */,
-				7350DFB441E4A25884D2CF42 /* TodayView.swift */,
 				9FD4D3D2AFAEDF1DC645EAAE /* WeekView.swift */,
 			);
 			path = UI;
@@ -180,6 +185,7 @@
 		D4FB10428BABFC38A17959D4 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				85B3B057B98A7D1F03436D44 /* Activities.swift */,
 				B4B404B6CAF3EA2E01C7FBD7 /* DayKey.swift */,
 				BD3E9B61910766697EB5741D /* ImageTools.swift */,
 				C0FB2D3293D126013D1C9A81 /* LapMath.swift */,
@@ -302,13 +308,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				89CF3C96685E65D076979AC1 /* Activities.swift in Sources */,
+				ADD87C44467F680ABCDB85D5 /* ActivitiesView.swift in Sources */,
+				34A9098913AD870EE2280095 /* ActivityRing.swift in Sources */,
+				A32B7CC5D8D039CCEC759885 /* Celebration.swift in Sources */,
 				6FFCD7D6BE548A2D57AF56B4 /* DayDetailView.swift in Sources */,
 				DD8D59FBBBF7AC3BE8231FA4 /* DayKey.swift in Sources */,
-				854E5A501E5D2D83C22E4061 /* EverydayView.swift in Sources */,
 				F9E1D20ADAC24E540990D095 /* Haptics.swift in Sources */,
 				645F171D8DDD5C40E1679D93 /* ImageTools.swift in Sources */,
 				29E841B3EF9A6126A9AE5FE6 /* LapMath.swift in Sources */,
 				97816C81CFAC4EFE60C7FEAD /* LapsApp.swift in Sources */,
+				FF7125FB70E00CF2045AFC44 /* LapsView.swift in Sources */,
 				BEFA719BCDA503D88615AB3F /* Models.swift in Sources */,
 				10ACB78BA35C7859B5DB257E /* NotificationScheduler.swift in Sources */,
 				01A36E946D652A178BB5E730 /* PhotoCropView.swift in Sources */,
@@ -321,11 +331,9 @@
 				EBAFEF6F9D6DED34E65CF14D /* RemindersView.swift in Sources */,
 				C7AC29EF7569C3A0CA40F77C /* RootView.swift in Sources */,
 				6D0ED5EC6C13236FDD700229 /* Sounds.swift in Sources */,
-				48A959CA576DC7F1DF46771E /* StandUpViews.swift in Sources */,
 				AB02293D1B95F6C43E2F64F5 /* StandUps.swift in Sources */,
 				7A543F0349F216A93DFFCBD9 /* StandingMath.swift in Sources */,
 				7286A9CAA627A66557B0B610 /* Theme.swift in Sources */,
-				E04DCE682096A2237755914E /* TodayView.swift in Sources */,
 				90A461BFD655BF8657DA3D78 /* WalkStore.swift in Sources */,
 				5DDD6D2EE45C5AB7866A22C0 /* WeekView.swift in Sources */,
 			);
@@ -427,7 +435,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 6Y4GKX652F;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -528,7 +536,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 6Y4GKX652F;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;

@@ -28,6 +28,11 @@ enum Theme {
     static let lightCream = dynamic(light: 0xF7F0E2, dark: 0x37322A)
     static let darkCream = dynamic(light: 0x7A6235, dark: 0xF0E4CA)
 
+    /// A gentle "still worth doing": unfinished daily activities. Orange-amber, so it never
+    /// reads as the gold of a bonus, and never red.
+    static let amber = dynamic(light: 0xB35C00, dark: 0xFFA23D)
+    static let lightAmber = dynamic(light: 0xFFEFD9, dark: 0x3A2810)
+
     /// The still-hidden tiles of the daily picture: a step lighter than the black background.
     static let tileCover = dynamic(light: 0xE4DED3, dark: 0x343C3B)
 

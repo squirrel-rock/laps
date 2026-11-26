@@ -56,8 +56,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         if response.actionIdentifier == NotificationIDs.laterAction {
             await MainActor.run { AppDelegate.store.remindMeLater() }
         } else if content.categoryIdentifier == NotificationIDs.standUpCategory {
-            let ids = content.userInfo[NotificationIDs.choicesKey] as? [String]
-            await MainActor.run { AppDelegate.store.showStandUpPicker(choiceIDs: ids) }
+            await MainActor.run { AppDelegate.store.openActivities = true }
         }
     }
 }

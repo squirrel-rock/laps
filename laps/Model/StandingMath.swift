@@ -1,15 +1,15 @@
 import Foundation
 
-/// The numbers and gentle wording behind standing up.
+/// The numbers and gentle wording behind activities (getting up from sitting).
 ///
-/// Every time he stands up earns one credit: a quick "I stood up", a finished suggestion,
-/// or the face lotion. The goal is adjustable (10 by default); anything past it is gold.
+/// Every activity earns one credit. The goal is adjustable (10 by default); anything past it is gold.
+/// The face washes come first in the ring and pills, in cream.
 enum StandingMath {
     static let perGroup = 5
 
-    /// Violet pill groups up to the goal, after the face lotion pill: e.g. [5, 5] or [5, 4].
-    static func goalGroups(goal: Int, lotionDone: Bool) -> [Int] {
-        var left = max(0, goal - (lotionDone ? 1 : 0)), groups: [Int] = []
+    /// Violet pill groups up to the goal, after the cream face-wash pills: e.g. [5, 5] or [5, 3].
+    static func goalGroups(goal: Int, lotions: Int) -> [Int] {
+        var left = max(0, goal - lotions), groups: [Int] = []
         while left > 0 { groups.append(min(perGroup, left)); left -= perGroup }
         return groups
     }
@@ -21,10 +21,10 @@ enum StandingMath {
     /// The line under the violet ring.
     static func statusLine(_ credits: Int, goal: Int) -> String {
         switch credits {
-        case ..<1: return "Ready for your first time up?"
+        case ..<1: return "Ready for your first activity?"
         case 1..<goal:
             let left = goal - credits
-            return "\(left) more time\(left == 1 ? "" : "s") up to today's goal"
+            return "\(left) more activit\(left == 1 ? "y" : "ies") to today's goal"
         case goal: return "Goal reached! Every extra one is gold."
         default:
             let extra = credits - goal
@@ -40,9 +40,9 @@ enum StandingMath {
 
     static func message(after credits: Int, goal: Int) -> String {
         switch moment(after: credits, goal: goal) {
-        case .one: return credits == 1 ? "You stood up! That's your first today." : "You stood up! That's \(credits) today."
-        case .goal: return "\(credits) times up today. Goal reached!"
-        case .bonus: return "A gold one! \(credits) times up today."
+        case .one: return credits == 1 ? "Nicely done! That's your first activity today." : "Nicely done! That's \(credits) today."
+        case .goal: return "\(credits) activities today. Goal reached!"
+        case .bonus: return "A gold one! \(credits) activities today."
         }
     }
 }

@@ -1,37 +1,27 @@
 import SwiftUI
 
-struct TodayView: View {
+/// The Laps screen: laps and walks to the car, toward 10 walking credits a day.
+struct LapsView: View {
     @Environment(WalkStore.self) private var store
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var celebration: Celebration?
-    @State private var lastLapTap = Date.distantPast
+    @State private var lastTap = Date.distantPast
     @State private var confirmUndo = false
     @State private var lapTick = 0
+    @State private var justAddedCarWalk: EverydayEntry?
 
     /// Taps closer together than this are treated as one, which catches an accidental
     /// tremor double-tap but still lets him log laps quickly: tap, tap, tap.
     private let doubleTapGuard: TimeInterval = 0.6
 
-    #if DEBUG
-    // Debug-only: `-scrollBottom YES` opens scrolled to the bottom (used for screenshots).
-    private let startAtBottom = UserDefaults.standard.bool(forKey: "scrollBottom")
-    #else
-    private let startAtBottom = false
-    #endif
-
     var body: some View {
         let laps = store.lapsToday
-        let session = store.active
 
         ScrollView {
             VStack(spacing: 20) {
                 header
                 TodayProgressCard(laps: laps, carWalks: store.carWalksToday)
-
-                if session?.state == .onBreak {
-                    breakCard(laps: laps)
-                }
 
                 Button(action: recordLap) {
                     Label("Completed a lap!", systemImage: "figure.walk")
@@ -41,7 +31,15 @@ struct TodayView: View {
                 .accessibilityLabel("Completed a lap")
                 .accessibilityHint("Records one lap for today")
 
-                sessionButtons(session: session)
+                sessionButtons
+
+                // Kept well below the lap button, so a shaky tap can't land on the wrong one.
+                Button(action: recordCarWalk) {
+                    Label("Walked to the car", systemImage: "car.fill")
+                }
+                .buttonStyle(PrimaryButtonStyle(minHeight: 88, color: Theme.turquoise, shadow: Theme.darkTurquoise))
+                .accessibilityHint("Counts toward today's 10, like a lap")
+                .padding(.top, 12)
 
                 if laps > 0 {
                     Button {
@@ -53,32 +51,23 @@ struct TodayView: View {
                             .frame(maxWidth: .infinity, minHeight: 56)
                     }
                     .accessibilityHint("Removes the most recent lap after you confirm")
-                    .padding(.top, 4)
                 }
-
-                StandingUpCard(celebrate: show)
-                    .padding(.top, 8)
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 32)
         }
-        .defaultScrollAnchor(startAtBottom ? .bottom : .top)
         .background(Theme.background.ignoresSafeArea())
-        .overlay {
-            if let c = celebration, c.moment.isBig, !reduceMotion {
-                ConfettiView(gold: c.moment == .lucky)
-                    .id(c.id)
-                    .ignoresSafeArea()
-            }
-        }
-        .overlay(alignment: .top) {
-            if let c = celebration {
-                CelebrationBanner(celebration: c)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 8)
-                    .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
-                    .id(c.id)
-                    .onTapGesture { withAnimation { celebration = nil } }
+        .solidStatusBar()
+        .celebrating($celebration)
+        .safeAreaInset(edge: .bottom) {
+            if let added = justAddedCarWalk {
+                UndoBar(text: "Saved: walk to the car") {
+                    withAnimation {
+                        store.deleteEveryday(added.id, on: store.todayKey)
+                        justAddedCarWalk = nil
+                    }
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
         .sensoryFeedback(.success, trigger: lapTick)
@@ -87,13 +76,6 @@ struct TodayView: View {
             Button("Keep it", role: .cancel) {}
         } message: {
             Text("Today will go from \(laps) to \(max(0, laps - 1)) laps.")
-        }
-        .task(id: celebration?.id) {
-            guard let c = celebration else { return }
-            try? await Task.sleep(for: .seconds(c.moment.isBig ? 4.5 : 2.5))
-            withAnimation(.easeOut(duration: 0.4)) {
-                if celebration?.id == c.id { celebration = nil }
-            }
         }
     }
 
@@ -122,58 +104,19 @@ struct TodayView: View {
         }
     }
 
-    private func breakCard(laps: Int) -> some View {
-        VStack(spacing: 14) {
-            Label("On a break", systemImage: "pause.circle.fill")
-                .font(.system(.title2, design: .rounded).weight(.bold))
-                .foregroundStyle(Theme.darkTeal)
-            Text("Your \(LapMath.plural(laps, "lap")) \(laps == 1 ? "is" : "are") saved. Take all the time you need — I'll check in after 10 minutes.")
-                .font(.system(.body, design: .rounded))
-                .foregroundStyle(Theme.text)
-                .multilineTextAlignment(.center)
-            Button("I'm back — keep walking") { animate { store.resumeWalking() } }
-                .buttonStyle(SecondaryButtonStyle())
-        }
-        .card()
-    }
-
+    /// "Finished for now" while a walk is going; otherwise "Remind me later".
     @ViewBuilder
-    private func sessionButtons(session: ActiveSession?) -> some View {
-        switch session?.state {
-        case .walking:
-            VStack(spacing: 12) {
-                Button {
-                    animate { store.takeBathroomBreak() }
-                } label: {
-                    Label("Bathroom break", systemImage: "pause.fill")
-                }
-                .buttonStyle(SecondaryButtonStyle())
-                .accessibilityHint("Saves your laps, pauses, and reminds you in 10 minutes")
-
-                Button {
-                    animate { store.finishForNow() }
-                    show(Celebration(moment: .lap, message: "All saved. Rest well!", icon: "checkmark.circle.fill"))
-                } label: {
-                    Label("Finished for now", systemImage: "checkmark")
-                }
-                .buttonStyle(SecondaryButtonStyle())
-                .accessibilityHint("Ends this walk. Your laps stay saved and you can walk again later.")
-            }
-        case .onBreak:
+    private var sessionButtons: some View {
+        if store.active != nil {
             Button {
                 animate { store.finishForNow() }
+                show(Celebration(moment: .lap, message: "All saved. Rest well!", icon: "checkmark.circle.fill"))
             } label: {
                 Label("Finished for now", systemImage: "checkmark")
             }
             .buttonStyle(SecondaryButtonStyle())
-        case nil:
-            remindLaterSection
-        }
-    }
-
-    @ViewBuilder
-    private var remindLaterSection: some View {
-        if let later = store.pendingLater {
+            .accessibilityHint("Ends this walk. Your laps stay saved and you can walk again later.")
+        } else if let later = store.pendingLater {
             VStack(spacing: 8) {
                 Label("I'll remind you at \(later.formatted(date: .omitted, time: .shortened))",
                       systemImage: "bell.fill")
@@ -199,11 +142,15 @@ struct TodayView: View {
 
     // MARK: - Actions
 
-    private func recordLap() {
+    private func tapAllowed() -> Bool {
         let now = Date()
-        guard now.timeIntervalSince(lastLapTap) > doubleTapGuard else { return }
-        lastLapTap = now
+        guard now.timeIntervalSince(lastTap) > doubleTapGuard else { return false }
+        lastTap = now
+        return true
+    }
 
+    private func recordLap() {
+        guard tapAllowed() else { return }
         let total = animateReturning { store.recordLap() }
         let carWalks = store.carWalksToday
         lapTick += 1
@@ -212,6 +159,28 @@ struct TodayView: View {
         if moment.isBig { Haptics.celebrate() }
         show(Celebration(moment: moment, message: LapMath.message(afterLap: total, carWalks: carWalks),
                          icon: moment == .lucky ? "sparkles" : nil, reveal: true))
+    }
+
+    private func recordCarWalk() {
+        guard tapAllowed(), let entry = animateReturning({ store.addEveryday(EverydayEntry.carWalk) }) else { return }
+        lapTick += 1
+        let credits = store.walkingCreditsToday
+        let moment: LapMath.Moment = credits == LapMath.dailyGoal ? .goal
+            : credits == LapMath.luckyNumber ? .lucky : (credits > LapMath.dailyGoal ? .bonusLap : .lap)
+        Sounds.play(moment.isBig ? .goal : .lapC, enabled: store.settings.soundOn)
+        if moment.isBig { Haptics.celebrate() }
+        let message: String
+        switch moment {
+        case .goal: message = "Ten today. Goal reached!"
+        case .lucky: message = "Thirteen! A lucky number."
+        default: message = "A walk to the car! That's \(credits) today."
+        }
+        show(Celebration(moment: moment, message: message, icon: moment.isBig ? nil : "car.fill", reveal: true))
+        withAnimation { justAddedCarWalk = entry }
+        Task {
+            try? await Task.sleep(for: .seconds(8))
+            withAnimation { if justAddedCarWalk?.id == entry.id { justAddedCarWalk = nil } }
+        }
     }
 
     private func show(_ c: Celebration) {
@@ -473,77 +442,3 @@ struct FlowLayout: Layout {
     }
 }
 
-// MARK: - Celebration
-
-struct Celebration: Equatable {
-    let id = UUID()
-    let moment: LapMath.Moment
-    let message: String
-    var icon: String?
-    /// Shows today's picture in the banner, with the newly uncovered tile appearing.
-    var reveal = false
-}
-
-struct CelebrationBanner: View {
-    let celebration: Celebration
-    @State private var burst = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    var body: some View {
-        let big = celebration.moment.isBig
-        HStack(spacing: 14) {
-            ZStack {
-                if big && !reduceMotion {
-                    ForEach(0..<8, id: \.self) { i in
-                        Image(systemName: "sparkle")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(i.isMultiple(of: 2) ? Theme.warm : .white)
-                            .offset(y: burst ? -34 : 0)
-                            .rotationEffect(.degrees(Double(i) * 45))
-                            .opacity(burst ? 0 : 1)
-                    }
-                }
-                Image(systemName: celebration.icon ?? (big ? "star.fill" : "hand.thumbsup.fill"))
-                    .font(.system(size: big ? 34 : 26, weight: .bold))
-                    .foregroundStyle(big ? Theme.warm : .white)
-                    .symbolEffect(.bounce, value: burst)
-            }
-            .frame(width: 48, height: 48)
-
-            Text(celebration.message)
-                .font(.system(big ? .title2 : .title3, design: .rounded).weight(.bold))
-                .foregroundStyle(.white)
-                .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 0)
-            if celebration.reveal { BannerPicture() }
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, big ? 22 : 16)
-        .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(Color(UIColor(hex: 0x126B67))))
-        .shadow(color: .black.opacity(0.2), radius: 12, y: 6)
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isStaticText)
-        .onAppear {
-            withAnimation(.easeOut(duration: 0.9)) { burst = true }
-            UIAccessibility.post(notification: .announcement, argument: celebration.message)
-        }
-    }
-}
-
-/// A small copy of today's picture in the celebration banner. It starts at the count before
-/// this credit, then the new tile fades in once the picture catches up.
-private struct BannerPicture: View {
-    @Environment(WalkStore.self) private var store
-    @Environment(PhotoStore.self) private var photos
-
-    var body: some View {
-        let s = photos.settings
-        if s.isOn, let p = photos.picture(for: store.todayKey), let r = photos.lastReveal, r.day == p.day {
-            TilePicture(image: photos.dayImage(p, .thumb), tiles: s.tiles, revealed: r.count,
-                        order: PictureMath.order(tiles: s.tiles, seed: "\(p.day)-\(p.photoID)"))
-                .frame(width: 60)
-                .shadow(color: .black.opacity(0.25), radius: 4, y: 2)
-                .accessibilityHidden(true)
-        }
-    }
-}

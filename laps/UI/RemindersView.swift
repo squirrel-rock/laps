@@ -72,7 +72,7 @@ struct RemindersView: View {
                     set: { store.setSound($0) }))
                     .frame(minHeight: 48)
             } footer: {
-                Text("Cheerful sounds for laps, sets and standing up. They play even when the iPhone is on silent.")
+                Text("Cheerful sounds for laps, sets and activities. They play even when the iPhone is on silent.")
             }
         }
         .font(.system(.body, design: .rounded))
@@ -135,15 +135,15 @@ struct StandUpSettingsSection: View {
         Section {
             Stepper(value: Binding(get: { store.standingGoal }, set: { store.setStandingGoal($0) }),
                     in: StandUpSettings.goalRange) {
-                Text("Daily goal: \(store.standingGoal) times")
+                Text("Daily goal: \(store.standingGoal) activities")
                     .font(.system(.body, design: .rounded).weight(.semibold))
             }
             .frame(minHeight: 56)
-            .accessibilityValue("\(store.standingGoal) times a day")
+            .accessibilityValue("\(store.standingGoal) activities a day")
         } header: {
-            Text("Standing up")
+            Text("Activities")
         } footer: {
-            Text("Every time up counts: \"I stood up\", a finished idea, or the face lotion.")
+            Text("Every activity on the Activities screen counts once each time it's tapped, including the face washes.")
         }
 
         Section {
@@ -160,7 +160,7 @@ struct StandUpSettingsSection: View {
                     get: { store.standUpsPausedToday },
                     set: { store.setStandUpsPausedToday($0) })) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Pause standing-up reminders for today")
+                        Text("Pause activity reminders for today")
                         Text("They'll start again tomorrow.")
                             .font(.subheadline)
                             .foregroundStyle(Theme.secondaryText)
@@ -169,9 +169,9 @@ struct StandUpSettingsSection: View {
                 .frame(minHeight: 56)
             }
         } header: {
-            Text("Standing-up reminders")
+            Text("Activity reminders")
         } footer: {
-            Text("Each one offers three ideas: a spin around the living room, an exercise, and something fun or useful. They wait while you're in the middle of a walk, and skip any time a walk reminder is due.")
+            Text("Each one says it's time to get up; tapping it opens the Activities list. Until the morning face wash is done, it comes first. They wait while you're in the middle of a walk, and skip any time a walk reminder is due.")
         }
     }
 
@@ -249,16 +249,16 @@ struct PictureSettingsSection: View {
         } header: {
             Text("Picture reward")
         } footer: {
-            Text("Each day brings a new photo, uncovered a piece at a time as you walk and stand up. Changing these never changes your activity records.")
+            Text("Each day brings a new photo, uncovered a piece at a time as you walk and do activities. Changing these never changes your activity records.")
         }
     }
 
     private func modeExplanation(_ s: PictureSettings) -> String {
         switch s.mode {
         case .determined:
-            return "10 walking, then standing up for the rest. Gold laps count too."
+            return "10 walking, then activities for the rest. Gold laps count too."
         case .flexible:
-            return "Any mix of walking and standing up."
+            return "Any mix of walking and activities."
         }
     }
 }

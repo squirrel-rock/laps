@@ -2,15 +2,13 @@ import Foundation
 
 /// A notification the app wants pending. Pure data so the rules can be unit tested.
 struct PlannedReminder: Equatable {
-    enum Kind: Equatable { case daily, later, bathroomBreak, standUp }
+    enum Kind: Equatable { case daily, later, standUp }
 
     var id: String
     var date: Date
     var title: String
     var body: String
     var kind: Kind
-    /// For stand-ups: the three choice IDs offered.
-    var choiceIDs: [String] = []
 
     var isWalkReminder: Bool { kind != .standUp }
 }
@@ -19,7 +17,6 @@ struct PlannedReminder: Equatable {
 /// The scheduler replaces everything pending with this list, so there are never duplicates.
 enum ReminderPlanner {
     static let laterMinutes = 30
-    static let breakMinutes = 10
     /// iOS keeps at most 64 pending notifications per app.
     static let systemLimit = 64
     static let maxDaysAhead = 14
@@ -31,7 +28,6 @@ enum ReminderPlanner {
     static let standUpClashWindow: TimeInterval = 15 * 60
 
     static let laterID = "walk.later"
-    static let breakID = "walk.break"
 
     static let invitations = [
         "Time for a little walk?",
@@ -40,7 +36,7 @@ enum ReminderPlanner {
     ]
 
     /// - Parameters:
-    ///   - lotionDoneToday: once true, today's stand-ups stop offering the face lotion.
+    ///   - lotionDoneToday: once true, today's activity reminders stop mentioning the morning face wash.
     ///   - standUpsQuietUntil: no stand-ups before this time (he's in the middle of a walk).
     static func plan(now: Date,
                      calendar: Calendar,
@@ -54,15 +50,8 @@ enum ReminderPlanner {
         let startOfToday = calendar.startOfDay(for: now)
         var result: [PlannedReminder] = []
 
-        // One-off walk reminders.
+        // The one-off "Remind me later" walk reminder.
         if !pausedToday {
-            if let at = settings.breakReminderAt, at > now {
-                result.append(PlannedReminder(
-                    id: breakID, date: at,
-                    title: "Ready to finish your walk?",
-                    body: "Your laps are saved. Pick up right where you left off.",
-                    kind: .bathroomBreak))
-            }
             if let at = settings.snoozeUntil, at > now {
                 result.append(PlannedReminder(
                     id: laterID, date: at,
@@ -105,7 +94,7 @@ enum ReminderPlanner {
             }
         }
 
-        // Stand-up reminders fill the remaining room, soonest first.
+        // Activity reminders fill the remaining room, soonest first.
         let standUp = settings.standUp
         if standUp.isOn {
             let walkDates = result.map(\.date)
@@ -117,7 +106,6 @@ enum ReminderPlanner {
                 let isToday = offset == 0
                 if isToday && standUp.pausedOn == todayKey { continue }
                 let key = dayKey.key(for: day)
-                let dayNumber = StandUps.dayNumber(day, calendar: calendar)
                 let comps = StandUps.slots(on: day, calendar: calendar, settings: standUp)
 
                 for (slot, date) in comps.enumerated() where room > 0 {
@@ -125,16 +113,16 @@ enum ReminderPlanner {
                     if let quiet = standUpsQuietUntil, date < quiet { continue }
                     if walkDates.contains(where: { abs($0.timeIntervalSince(date)) < standUpClashWindow }) { continue }
 
-                    let choices = StandUps.choices(dayNumber: dayNumber, slot: slot,
-                                                   lotionDone: isToday && lotionDoneToday)
                     let hm = calendar.dateComponents([.hour, .minute], from: date)
+                    // The morning face wash leads until it's done (all day today, mornings on later days).
+                    let lotionPending = isToday ? !lotionDoneToday
+                                                : (hm.hour ?? 0) < Activities.morningDeadlineHour
                     result.append(PlannedReminder(
                         id: String(format: "standup.%@.%02d%02d", key, hm.hour ?? 0, hm.minute ?? 0),
                         date: date,
                         title: StandUps.titles[slot % StandUps.titles.count],
-                        body: StandUps.notificationBody(choices),
-                        kind: .standUp,
-                        choiceIDs: choices.map(\.id)))
+                        body: StandUps.notificationBody(lotionPending: lotionPending, slot: slot),
+                        kind: .standUp))
                     room -= 1
                 }
             }

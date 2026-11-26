@@ -8,8 +8,8 @@ final class WalkStore {
     private(set) var data: AppData
     /// Set when the saved file couldn't be read, so nothing gets silently overwritten.
     private(set) var loadProblem: String?
-    /// Stand-up choices waiting to be shown (from a notification tap or "Stand up now"). Not saved.
-    var standUpPrompt: [StandUpChoice]?
+    /// Set when an activity reminder is tapped, so the app opens on Activities. Not saved.
+    var openActivities = false
 
     @ObservationIgnored private let fileURL: URL
     @ObservationIgnored private let now: () -> Date
@@ -70,7 +70,7 @@ final class WalkStore {
         dayKey.lastDays(7, endingAt: now()).map { key in
             let r = record(for: key)
             return WeekDay(key: key, date: dayKey.date(for: key) ?? now(), laps: r.lapCount, carWalks: r.carWalks,
-                           standing: r.standingCredits, lotion: r.lotionDoneAt != nil)
+                           standing: r.standingCredits, lotions: r.lotions)
         }
     }
 
@@ -97,7 +97,6 @@ final class WalkStore {
         }
         data.active?.state = .walking
         data.active?.lapCount += 1
-        data.settings.breakReminderAt = nil
         data.settings.snoozeUntil = nil
         save()
         return lapsToday
@@ -122,31 +121,13 @@ final class WalkStore {
             data.active = ActiveSession(day: todayKey, start: now())
         }
         data.active?.state = .walking
-        data.settings.breakReminderAt = nil
         data.settings.snoozeUntil = nil
-        save()
-    }
-
-    /// Pauses the session, keeps every lap, and asks for a nudge in 10 minutes.
-    func takeBathroomBreak() {
-        if data.active == nil { data.active = ActiveSession(day: todayKey, start: now()) }
-        data.active?.state = .onBreak
-        data.active?.breaks += 1
-        data.settings.snoozeUntil = nil
-        data.settings.breakReminderAt = now().addingTimeInterval(TimeInterval(ReminderPlanner.breakMinutes * 60))
-        save()
-    }
-
-    func resumeWalking() {
-        data.active?.state = .walking
-        data.settings.breakReminderAt = nil
         save()
     }
 
     /// Ends the session. All laps stay recorded; he can start another later.
     func finishForNow() {
         endActiveSession(at: now())
-        data.settings.breakReminderAt = nil
         save()
     }
 
@@ -165,10 +146,7 @@ final class WalkStore {
 
     func setRemindersPausedToday(_ paused: Bool) {
         data.settings.remindersPausedOn = paused ? todayKey : nil
-        if paused {
-            data.settings.snoozeUntil = nil
-            data.settings.breakReminderAt = nil
-        }
+        if paused { data.settings.snoozeUntil = nil }
         save()
     }
 
@@ -206,60 +184,53 @@ final class WalkStore {
     var lotionDoneToday: Bool { today.lotionDoneAt != nil }
     var standUpsPausedToday: Bool { data.settings.standUp.pausedOn == todayKey }
 
-    /// The stand-up he picked but hasn't marked done yet.
-    var pendingStandUp: StandUpEntry? { today.standUps.last { $0.doneAt == nil } }
-
-    /// The three choices for right now.
-    func standUpChoicesNow() -> [StandUpChoice] {
-        let t = now()
-        let slot = StandUps.currentSlot(now: t, calendar: calendar, settings: data.settings.standUp)
-        return StandUps.choices(dayNumber: StandUps.dayNumber(t, calendar: calendar),
-                                slot: slot, lotionDone: lotionDoneToday)
-    }
-
-    /// Opens the picker. Choices from a notification are used when given (minus the lotion if it's done).
-    func showStandUpPicker(choiceIDs: [String]? = nil) {
-        var choices = (choiceIDs ?? []).compactMap(StandUps.choice(id:))
-        if choices.count != 3 || (lotionDoneToday && choices.contains(StandUps.lotion)) {
-            choices = standUpChoicesNow()
-        }
-        standUpPrompt = choices
-    }
-
-    /// Picking one is his commitment to stand up for it.
-    func pickStandUp(_ choice: StandUpChoice) {
-        let t = now()
-        mutateDay(todayKey) { day in
-            day.standUps.removeAll { $0.doneAt == nil }
-            day.standUps.append(StandUpEntry(picked: t, choiceID: choice.id, title: choice.title))
-        }
-        save()
-    }
-
-    /// Marks the picked stand-up done. Returns today's count.
+    /// Records one activity with a single tap and returns the entry, so it can be undone.
+    /// There's no minimum gap: it's the honor system. A checkable one already done today is
+    /// left as it is (returns nil), so a double tap never counts it twice.
     @discardableResult
-    func completeStandUp() -> Int {
+    func record(_ activity: Activity) -> StandUpEntry? {
+        if activity.isCheckable && isDone(activity) { return nil }
         let t = now()
-        var wasLotion = false
+        let entry = StandUpEntry(picked: t, choiceID: activity.id, title: activity.title, doneAt: t)
         mutateDay(todayKey) { day in
-            guard let i = day.standUps.lastIndex(where: { $0.doneAt == nil }) else { return }
-            day.standUps[i].doneAt = t
-            wasLotion = day.standUps[i].choiceID == StandUps.lotion.id
-            if wasLotion && day.lotionDoneAt == nil { day.lotionDoneAt = t }
+            if activity.id == Activities.morningLotion.id { day.lotionDoneAt = t }
+            day.standUps.append(entry)
         }
-        save()
-        return standingCreditsToday
-    }
-
-    /// "I stood up": records one standing-up credit right away, without a suggestion.
-    /// Returns the entry so it can be undone.
-    @discardableResult
-    func recordStoodUp() -> StandUpEntry {
-        let t = now()
-        let entry = StandUpEntry(picked: t, choiceID: StandUps.stoodID, title: "Stood up", doneAt: t)
-        mutateDay(todayKey) { $0.standUps.append(entry) }
         save()
         return entry
+    }
+
+    /// Takes back a recorded activity (from Undo or Completed today).
+    func undo(_ entry: StandUpEntry) {
+        mutateDay(todayKey) { day in
+            day.standUps.removeAll { $0.id == entry.id }
+            if entry.choiceID == Activities.morningLotion.id { day.lotionDoneAt = nil }
+        }
+        save()
+    }
+
+    func count(_ activity: Activity) -> Int { today.count(activity.id) }
+    func isDone(_ activity: Activity) -> Bool { count(activity) > 0 }
+
+    /// Daily activities to show in amber: the morning face wash from noon, and once the goal
+    /// is reached, the exercises still to do. Extra accomplishments never turn amber.
+    func needsAttention(_ activity: Activity) -> Bool {
+        guard activity.kind == .daily, !isDone(activity) else { return false }
+        if activity.id == Activities.morningLotion.id {
+            return calendar.component(.hour, from: now()) >= Activities.morningDeadlineHour
+        }
+        return activity.amberAtGoal && standingCreditsToday >= standingGoal
+    }
+
+    /// Everything recorded today, newest first, for Completed today.
+    var completedToday: [StandUpEntry] {
+        var list = today.standUps.filter { $0.doneAt != nil }
+        // Face washes ticked before one-tap recording only have the date.
+        if let t = today.lotionDoneAt, !list.contains(where: { $0.choiceID == Activities.morningLotion.id }) {
+            list.append(StandUpEntry(picked: t, choiceID: Activities.morningLotion.id,
+                                     title: Activities.morningLotion.title, doneAt: t))
+        }
+        return list.sorted { ($0.doneAt ?? $0.picked) > ($1.doneAt ?? $1.picked) }
     }
 
     func setStandingGoal(_ goal: Int) {
@@ -267,19 +238,13 @@ final class WalkStore {
         save()
     }
 
-    func skipPendingStandUp() {
-        mutateDay(todayKey) { $0.standUps.removeAll { $0.doneAt == nil } }
-        save()
-    }
-
-    func setLotionDone(_ done: Bool) {
-        let t = now()
-        mutateDay(todayKey) { $0.lotionDoneAt = done ? t : nil }
-        save()
-    }
-
     func deleteStandUp(_ id: UUID, on key: String) {
-        mutateDay(key) { $0.standUps.removeAll { $0.id == id } }
+        mutateDay(key) { day in
+            if let e = day.standUps.first(where: { $0.id == id }), e.choiceID == Activities.morningLotion.id {
+                day.lotionDoneAt = nil
+            }
+            day.standUps.removeAll { $0.id == id }
+        }
         save()
     }
 
@@ -338,7 +303,6 @@ final class WalkStore {
         guard let a = data.active, a.day != todayKey else { return }
         let lastLap = record(for: a.day).laps.map(\.time).max() ?? a.start
         endActiveSession(at: lastLap)
-        data.settings.breakReminderAt = nil
         save()
     }
 

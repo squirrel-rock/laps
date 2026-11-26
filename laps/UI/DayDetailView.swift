@@ -62,30 +62,30 @@ struct DayDetailView: View {
             }
 
             if !day.standUps.isEmpty || day.lotionDoneAt != nil {
-                Section("Standing up") {
-                    if let lotion = day.lotionDoneAt {
-                        Label("Face lotion at \(lotion.formatted(date: .omitted, time: .shortened))",
+                Section("Activities") {
+                    if let lotion = day.lotionDoneAt, !day.standUps.contains(where: { $0.choiceID == Activities.morningLotion.id }) {
+                        Label("Face wash and lotion at \(lotion.formatted(date: .omitted, time: .shortened))",
                               systemImage: "checkmark.circle.fill")
                             .foregroundStyle(Theme.darkTeal)
                     }
-                    ForEach(day.standUps.sorted { $0.picked < $1.picked }) { s in
+                    ForEach(day.standUps.filter { $0.doneAt != nil }.sorted { $0.picked < $1.picked }) { s in
                         HStack {
                             Text(s.title)
                             Spacer()
-                            Text(s.doneAt.map { $0.formatted(date: .omitted, time: .shortened) } ?? "not done")
+                            Text(s.doneAt.map { $0.formatted(date: .omitted, time: .shortened) } ?? "")
                                 .foregroundStyle(Theme.secondaryText)
                         }
                         .accessibilityElement(children: .combine)
                     }
                     .onDelete { offsets in
-                        let sorted = day.standUps.sorted { $0.picked < $1.picked }
+                        let sorted = day.standUps.filter { $0.doneAt != nil }.sorted { $0.picked < $1.picked }
                         for i in offsets { store.deleteStandUp(sorted[i].id, on: dayKey) }
                     }
                 }
             }
 
             if !day.everyday.isEmpty {
-                Section("Everyday walking") {
+                Section("Walks to the car and notes") {
                     ForEach(day.everyday.sorted { $0.time < $1.time }) { e in
                         HStack {
                             Text(e.note)

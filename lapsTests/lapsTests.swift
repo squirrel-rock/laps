@@ -227,17 +227,19 @@ final class WalkStoreTests: XCTestCase {
     }
 
     func testWeekBarsSplitIntoCarWalksLapsAndGold() {
-        let d = WeekDay(key: "k", date: .now, laps: 11, carWalks: 1, standing: 0, lotion: false)
+        let d = WeekDay(key: "k", date: .now, laps: 11, carWalks: 1, standing: 0, lotions: 0)
         XCTAssertEqual(d.walking, 12)
         XCTAssertTrue(d.walkingParts == (1, 9, 2))
-        let noCar = WeekDay(key: "k", date: .now, laps: 7, carWalks: 0, standing: 0, lotion: false)
+        let noCar = WeekDay(key: "k", date: .now, laps: 7, carWalks: 0, standing: 0, lotions: 0)
         XCTAssertTrue(noCar.walkingParts == (0, 7, 0))
     }
 
     func testWeekStandingBarsSplitIntoLotionVioletAndGold() {
-        let d = WeekDay(key: "k", date: .now, laps: 0, carWalks: 0, standing: 12, lotion: true)
+        let d = WeekDay(key: "k", date: .now, laps: 0, carWalks: 0, standing: 12, lotions: 1)
         XCTAssertTrue(d.standingParts(goal: 10) == (1, 9, 2))
-        let noLotion = WeekDay(key: "k", date: .now, laps: 0, carWalks: 0, standing: 4, lotion: false)
+        let both = WeekDay(key: "k", date: .now, laps: 0, carWalks: 0, standing: 12, lotions: 2)
+        XCTAssertTrue(both.standingParts(goal: 10) == (2, 8, 2))
+        let noLotion = WeekDay(key: "k", date: .now, laps: 0, carWalks: 0, standing: 4, lotions: 0)
         XCTAssertTrue(noLotion.standingParts(goal: 10) == (0, 4, 0))
     }
 
@@ -245,7 +247,7 @@ final class WalkStoreTests: XCTestCase {
         let store = makeStore()
         store.recordLap()
         store.addEveryday(EverydayEntry.carWalk)
-        store.recordStoodUp()
+        store.record(Activities.somethingElse)
         let today = store.lastSevenDays().last!
         XCTAssertEqual(today.walking, 2)
         XCTAssertEqual(today.standing, 1)
@@ -281,52 +283,98 @@ final class WalkStoreTests: XCTestCase {
         XCTAssertTrue(files.contains { $0.contains("unreadable") })
     }
 
-    func testStandUpPickThenDone() {
+    func testOneTapRecordsAnActivity() {
         let store = makeStore()
-        let choices = store.standUpChoicesNow()
-        XCTAssertEqual(choices.first, StandUps.spin)
-        store.pickStandUp(choices[1])
-        XCTAssertEqual(store.pendingStandUp?.choiceID, choices[1].id)
-        XCTAssertEqual(store.standUpsDoneToday, 0)
-        clock.advance(minutes: 3)
-        XCTAssertEqual(store.completeStandUp(), 1)
-        XCTAssertNil(store.pendingStandUp)
-        XCTAssertEqual(store.lapsToday, 0, "Stand-ups never count as laps")
-        XCTAssertEqual(makeStore().standUpsDoneToday, 1, "Saved")
+        let fire = Activities.activity(id: "fire")!
+        XCTAssertNotNil(store.record(fire))
+        XCTAssertEqual(store.standingCreditsToday, 1)
+        XCTAssertEqual(store.lapsToday, 0, "Activities never count as laps")
+        XCTAssertEqual(store.walkingCreditsToday, 0, "Activities never count toward walking")
+        XCTAssertEqual(makeStore().standingCreditsToday, 1, "Saved")
     }
 
-    func testPickingLotionAndFinishingMarksLotionDone() {
+    func testAnytimeActivitiesRepeatWithACount() {
         let store = makeStore()
-        store.pickStandUp(StandUps.lotion)
-        store.completeStandUp()
-        XCTAssertTrue(store.lotionDoneToday)
-        XCTAssertFalse(store.standUpChoicesNow().contains(StandUps.lotion))
-        XCTAssertFalse(scheduler.last.contains { $0.id.contains(store.todayKey) && $0.choiceIDs.contains("lotion") })
-    }
-
-    func testStandingCreditsCountQuickStandsIdeasAndLotionOnce() {
-        let store = makeStore()
-        store.recordStoodUp()
-        store.recordStoodUp()   // honor system: no minimum gap between recordings
-        XCTAssertEqual(store.standingCreditsToday, 2)
-        store.pickStandUp(StandUps.lotion)
-        store.completeStandUp()
-        store.setLotionDone(true)   // ticking it again doesn't double-count
+        let laundry = Activities.activity(id: "laundry")!
+        store.record(laundry)
+        store.record(laundry)   // honor system: no minimum gap between recordings
+        store.record(laundry)
+        XCTAssertEqual(store.count(laundry), 3)
         XCTAssertEqual(store.standingCreditsToday, 3)
-        store.pickStandUp(StandUps.spin)
-        XCTAssertEqual(store.standingCreditsToday, 3, "Picked but not done yet")
-        XCTAssertEqual(store.completeStandUp(), 4)
-        store.setLotionDone(false)
-        XCTAssertEqual(store.standingCreditsToday, 3)
-        XCTAssertEqual(store.lapsToday, 0)
-        XCTAssertEqual(store.walkingCreditsToday, 0, "Standing never counts toward walking")
     }
 
-    func testQuickStandCanBeUndone() {
+    func testCheckableActivitiesCountOnceAndMoveToCompleted() {
         let store = makeStore()
-        let entry = store.recordStoodUp()
-        store.deleteStandUp(entry.id, on: store.todayKey)
+        let heels = Activities.activity(id: "heels")!
+        let first = store.record(heels)
+        XCTAssertNotNil(first)
+        XCTAssertNil(store.record(heels), "A second tap doesn't count it twice")
+        XCTAssertEqual(store.standingCreditsToday, 1)
+        XCTAssertTrue(store.isDone(heels))
+        XCTAssertEqual(store.completedToday.map(\.choiceID), ["heels"])
+
+        store.undo(first!)
+        XCTAssertFalse(store.isDone(heels))
         XCTAssertEqual(store.standingCreditsToday, 0)
+        XCTAssertTrue(store.completedToday.isEmpty)
+    }
+
+    func testBothFaceWashesCountAndShowAsCream() {
+        let store = makeStore()
+        let morning = store.record(Activities.morningLotion)!
+        XCTAssertTrue(store.lotionDoneToday, "Kept where older days had it")
+        store.record(Activities.eveningLotion)
+        XCTAssertEqual(store.standingCreditsToday, 2)
+        XCTAssertEqual(store.today.lotions, 2)
+        XCTAssertEqual(store.lastSevenDays().last?.lotions, 2)
+        store.undo(morning)
+        XCTAssertFalse(store.lotionDoneToday)
+        XCTAssertEqual(store.standingCreditsToday, 1)
+    }
+
+    func testOlderDaysStillCountTheLotionOnce() {
+        var day = DayRecord(day: "2026-11-20")
+        let t = date(2026, 11, 20)
+        day.lotionDoneAt = t
+        day.standUps = [StandUpEntry(picked: t, choiceID: "lotion", title: "Wash your face", doneAt: t),
+                        StandUpEntry(picked: t, choiceID: "spin", title: "Spin", doneAt: t),
+                        StandUpEntry(picked: t, choiceID: "squats", title: "Squats", doneAt: nil)]   // picked, never done
+        XCTAssertEqual(day.standingCredits, 2)
+        XCTAssertEqual(day.lotions, 1)
+    }
+
+    func testMorningFaceWashTurnsAmberAtNoon() {
+        let store = makeStore()                     // 9 AM
+        XCTAssertFalse(store.needsAttention(Activities.morningLotion))
+        clock.advance(minutes: 3 * 60)              // noon
+        XCTAssertTrue(store.needsAttention(Activities.morningLotion))
+        XCTAssertFalse(store.needsAttention(Activities.eveningLotion))
+        store.record(Activities.morningLotion)
+        XCTAssertFalse(store.needsAttention(Activities.morningLotion))
+    }
+
+    func testExercisesTurnAmberOnlyOnceTheGoalIsReached() {
+        let store = makeStore()
+        clock.advance(minutes: 60)
+        let squats = Activities.activity(id: "squats")!
+        let dishwasher = Activities.activity(id: "dishwasher")!
+        let floor = Activities.activity(id: "floor")!
+        store.record(Activities.morningLotion)
+        for _ in 0..<9 { store.record(Activities.activity(id: "spin")!) }
+        XCTAssertEqual(store.standingCreditsToday, 10)
+        XCTAssertTrue(store.needsAttention(squats))
+        XCTAssertFalse(store.needsAttention(dishwasher))
+        XCTAssertFalse(store.needsAttention(floor), "Extra accomplishments never turn amber")
+        store.record(squats)
+        XCTAssertFalse(store.needsAttention(squats))
+    }
+
+    func testAnytimeIsAlphabeticalBySubject() {
+        let subjects = Activities.anytime.map(\.subject)
+        XCTAssertEqual(subjects, subjects.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending })
+        XCTAssertEqual(subjects.first, "Bathroom")
+        XCTAssertEqual(subjects.last, "Water glass")
+        XCTAssertEqual(Set(Activities.all.map(\.id)).count, Activities.all.count, "IDs are unique")
     }
 
     func testStandingGoalIsAdjustableAndSaved() {
@@ -339,29 +387,14 @@ final class WalkStoreTests: XCTestCase {
     }
 
     func testStandingPillGroupsAndWording() {
-        XCTAssertEqual(StandingMath.goalGroups(goal: 10, lotionDone: false), [5, 5])
-        XCTAssertEqual(StandingMath.goalGroups(goal: 10, lotionDone: true), [5, 4])
-        XCTAssertEqual(StandingMath.statusLine(7, goal: 10), "3 more times up to today's goal")
+        XCTAssertEqual(StandingMath.goalGroups(goal: 10, lotions: 0), [5, 5])
+        XCTAssertEqual(StandingMath.goalGroups(goal: 10, lotions: 1), [5, 4])
+        XCTAssertEqual(StandingMath.goalGroups(goal: 10, lotions: 2), [5, 3])
+        XCTAssertEqual(StandingMath.statusLine(7, goal: 10), "3 more activities to today's goal")
+        XCTAssertEqual(StandingMath.statusLine(9, goal: 10), "1 more activity to today's goal")
         XCTAssertEqual(StandingMath.moment(after: 10, goal: 10), .goal)
         XCTAssertEqual(StandingMath.moment(after: 11, goal: 10), .bonus)
         XCTAssertEqual(StandingMath.statusLine(12, goal: 10), "2 gold bonuses. Wonderful!")
-    }
-
-    func testNewPickReplacesUnfinishedOne() {
-        let store = makeStore()
-        store.pickStandUp(StandUps.spin)
-        store.pickStandUp(StandUps.exercises[0])
-        XCTAssertEqual(store.today.standUps.count, 1)
-        store.skipPendingStandUp()
-        XCTAssertTrue(store.today.standUps.isEmpty)
-    }
-
-    func testNotificationChoicesDropLotionOnceDone() {
-        let store = makeStore()
-        store.setLotionDone(true)
-        store.showStandUpPicker(choiceIDs: ["spin", "standups", "lotion"])
-        XCTAssertFalse(store.standUpPrompt?.contains(StandUps.lotion) ?? true)
-        XCTAssertEqual(store.standUpPrompt?.count, 3)
     }
 
     func testStandUpsHeldWhileWalking() {
@@ -391,34 +424,29 @@ final class WalkStoreTests: XCTestCase {
 
     // MARK: Interruptions
 
-    func testBathroomBreakSavesPausesAndSchedulesTenMinuteReminder() {
+    func testLapsAfterAPauseCarryOn() {
         let store = makeStore()
-        store.recordLap(); store.recordLap(); store.recordLap(); store.recordLap()
-        store.takeBathroomBreak()
-
-        XCTAssertEqual(store.lapsToday, 4)
-        XCTAssertEqual(store.active?.state, .onBreak)
-        let breakReminder = scheduler.last.first { $0.kind == .bathroomBreak }
-        XCTAssertEqual(breakReminder?.date, clock.now.addingTimeInterval(10 * 60))
-        XCTAssertEqual(breakReminder?.title, "Ready to finish your walk?")
-        XCTAssertEqual(makeStore().lapsToday, 4, "Laps saved to disk")
-
-        clock.advance(minutes: 6)
-        store.recordLap()      // resumes without starting over
-        XCTAssertEqual(store.lapsToday, 5)
-        XCTAssertEqual(store.active?.lapCount, 5)
-        XCTAssertEqual(store.active?.breaks, 1)
-        XCTAssertNil(scheduler.last.first { $0.kind == .bathroomBreak }, "Break reminder cancelled on resume")
-    }
-
-    func testFinishingCancelsBreakReminder() {
-        let store = makeStore()
+        store.recordLap(); store.recordLap()
+        clock.advance(minutes: 8)                   // a bathroom break, without telling the app
         store.recordLap()
-        store.takeBathroomBreak()
+        XCTAssertEqual(store.lapsToday, 3)
+        XCTAssertEqual(store.active?.lapCount, 3)
         store.finishForNow()
         XCTAssertNil(store.active)
-        XCTAssertNil(scheduler.last.first { $0.kind == .bathroomBreak })
-        XCTAssertEqual(store.lapsToday, 1)
+        XCTAssertEqual(store.lapsToday, 3)
+    }
+
+    func testOldSaveWithABreakStillLoads() throws {
+        let old = """
+        {"version":2,"days":{},"settings":{"breakReminderAt":"2026-11-23T17:10:00Z","soundOn":true},
+         "active":{"id":"6F9619FF-8B86-D011-B42D-00C04FC964FF","day":"2026-11-23","start":"2026-11-23T17:00:00Z","state":"onBreak","lapCount":2,"breaks":1}}
+        """
+        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Data(old.utf8).write(to: url)
+        let store = makeStore()
+        XCTAssertNil(store.loadProblem)
+        XCTAssertNotNil(store.active)
+        XCTAssertEqual(scheduler.last.filter { $0.kind == .later }.count, 0)
     }
 
     func testRemindMeLaterSchedulesThirtyMinutes() {
@@ -483,7 +511,6 @@ final class ReminderPlannerTests: XCTestCase {
         var s = Settings()
         s.reminders = (6..<12).map { ReminderTime(hour: $0 + 8, minute: 0) }
         s.snoozeUntil = now.addingTimeInterval(1800)
-        s.breakReminderAt = now.addingTimeInterval(600)
         let p = plan(s)
         XCTAssertLessThanOrEqual(p.count, ReminderPlanner.systemLimit)
         XCTAssertEqual(Set(p.map(\.id)).count, p.count)
@@ -540,7 +567,6 @@ final class ReminderPlannerTests: XCTestCase {
     func testExpiredOneOffsAreIgnored() {
         var s = Settings()
         s.snoozeUntil = now.addingTimeInterval(-60)
-        s.breakReminderAt = now.addingTimeInterval(-60)
         XCTAssertTrue(plan(s).allSatisfy { $0.kind == .daily || $0.kind == .standUp })
     }
 
@@ -578,25 +604,15 @@ final class ReminderPlannerTests: XCTestCase {
         XCTAssertTrue(p.contains { $0.id == "standup.2026-11-24.1330" })
     }
 
-    func testStandUpsAlwaysOfferSpinAndLotionUntilDone() {
+    func testActivityRemindersPutTheMorningFaceWashFirstUntilDone() {
         let first = standUps(plan(), on: "2026-11-23").first!
-        XCTAssertEqual(first.choiceIDs.count, 3)
-        XCTAssertEqual(first.choiceIDs.first, "spin")
-        XCTAssertEqual(first.choiceIDs.last, "lotion")
-        XCTAssertTrue(first.body.hasPrefix("Pick one: a spin around the living room"))
+        XCTAssertEqual(first.body, "Face wash and lotion first, then anything from your list.")
 
         let afterLotion = standUps(plan(lotionDone: true), on: "2026-11-23")
-        XCTAssertFalse(afterLotion.contains { $0.choiceIDs.contains("lotion") })
+        XCTAssertFalse(afterLotion.contains { $0.body.hasPrefix("Face wash") })
         let tomorrow = standUps(plan(lotionDone: true), on: "2026-11-24")
-        XCTAssertTrue(tomorrow.allSatisfy { $0.choiceIDs.last == "lotion" }, "Lotion comes back the next day")
-    }
-
-    func testStandUpChoicesRotate() {
-        let exercises = Set((0..<20).map { StandUps.choices(dayNumber: 100, slot: $0, lotionDone: true)[1].id })
-        let fun = Set((0..<20).map { StandUps.choices(dayNumber: 100, slot: $0, lotionDone: true)[2].id })
-        XCTAssertEqual(exercises.count, StandUps.exercises.count)
-        XCTAssertEqual(fun.count, StandUps.fun.count)
-        XCTAssertEqual(StandUps.choices(dayNumber: -3, slot: 0, lotionDone: true).count, 3)
+        XCTAssertTrue(tomorrow.first!.body.hasPrefix("Face wash"), "Back the next morning")
+        XCTAssertFalse(tomorrow.last!.body.hasPrefix("Face wash"), "Not in the evening on later days")
     }
 
     func testStandUpsWaitDuringAWalk() {

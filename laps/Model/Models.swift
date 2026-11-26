@@ -27,8 +27,8 @@ struct WalkSession: Codable, Identifiable, Hashable {
     var breaks: Int
 }
 
-/// One time standing up: a suggestion Richard picked (and when he finished it), or a quick
-/// "I stood up" (choiceID "stood"), which is done the moment it's recorded.
+/// One activity, recorded with one tap (`doneAt` is set right away). Entries from before
+/// one-tap recording may have been picked and never finished; those have no `doneAt` and don't count.
 struct StandUpEntry: Codable, Identifiable, Hashable {
     var id = UUID()
     var picked: Date
@@ -52,12 +52,19 @@ struct DayRecord: Codable, Hashable {
     /// Laps plus car walks. The daily goal is 10.
     var walkingCredits: Int { lapCount + carWalks }
     var standUpsDone: Int { standUps.filter { $0.doneAt != nil }.count }
-    /// Standing-up credits: every finished stand-up, with the face lotion counted once
-    /// (whether it was picked as a suggestion or ticked off directly).
+    /// Activity credits: every recorded activity, with the morning face wash counted once
+    /// (older days may have it both as an entry and as `lotionDoneAt`).
     var standingCredits: Int {
-        standUps.filter { $0.doneAt != nil && $0.choiceID != StandUps.lotion.id }.count
+        standUps.filter { $0.doneAt != nil && $0.choiceID != Activities.morningLotion.id }.count
             + (lotionDoneAt != nil ? 1 : 0)
     }
+    /// Times this activity was recorded today.
+    func count(_ id: String) -> Int {
+        if id == Activities.morningLotion.id { return lotionDoneAt != nil ? 1 : 0 }
+        return standUps.filter { $0.doneAt != nil && $0.choiceID == id }.count
+    }
+    /// Face washes done (morning and evening): the cream part of the ring and chart.
+    var lotions: Int { count(Activities.morningLotion.id) + min(1, count(Activities.eveningLotion.id)) }
     var hasAnything: Bool {
         !laps.isEmpty || !everyday.isEmpty || !sessions.isEmpty || !standUps.isEmpty || lotionDoneAt != nil
     }
@@ -88,7 +95,7 @@ struct ReminderTime: Codable, Identifiable, Hashable {
     ]
 }
 
-/// Half-hourly "time to stand up" reminders.
+/// Half-hourly "time to get up" activity reminders.
 struct StandUpSettings: Codable, Hashable {
     var isOn = true
     var startHour = 10
@@ -110,8 +117,6 @@ struct Settings: Codable, Hashable {
     var remindersPausedOn: String?
     /// "Remind me later" invitation, if one is pending.
     var snoozeUntil: Date?
-    /// Bathroom-break reminder, if one is pending.
-    var breakReminderAt: Date?
     var standUp = StandUpSettings()
 }
 
@@ -159,7 +164,6 @@ extension Settings {
         soundOn = try c.decodeIfPresent(Bool.self, forKey: .soundOn) ?? true
         remindersPausedOn = try c.decodeIfPresent(String.self, forKey: .remindersPausedOn)
         snoozeUntil = try c.decodeIfPresent(Date.self, forKey: .snoozeUntil)
-        breakReminderAt = try c.decodeIfPresent(Date.self, forKey: .breakReminderAt)
         standUp = try c.decodeIfPresent(StandUpSettings.self, forKey: .standUp) ?? StandUpSettings()
     }
 }
@@ -180,9 +184,10 @@ struct WeekDay: Equatable {
     var date: Date
     var laps: Int
     var carWalks: Int
-    /// Times up, including the face lotion.
+    /// Activities, including the face washes.
     var standing: Int
-    var lotion: Bool
+    /// Face washes (0–2).
+    var lotions: Int
 
     var walking: Int { laps + carWalks }
 
@@ -192,9 +197,9 @@ struct WeekDay: Equatable {
         return (carWalks, teal, laps - teal)
     }
 
-    /// Standing bar from the bottom: lotion (cream), times up to the goal (violet), then gold.
+    /// Activities bar from the bottom: face washes (cream), activities to the goal (violet), then gold.
     func standingParts(goal: Int) -> (lotion: Int, violet: Int, gold: Int) {
-        let l = lotion ? 1 : 0
+        let l = min(lotions, standing)
         let others = standing - l
         let violet = min(others, max(0, goal - l))
         return (l, violet, others - violet)

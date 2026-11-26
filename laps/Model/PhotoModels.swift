@@ -42,9 +42,9 @@ struct PhotoItem: Codable, Identifiable, Hashable {
 }
 
 enum RewardMode: String, Codable, CaseIterable, Identifiable {
-    /// Ten walking credits, the rest from standing up.
+    /// Ten walking credits, the rest from activities.
     case determined
-    /// Any mix of walking and standing up.
+    /// Any mix of walking and activities.
     case flexible
 
     var id: String { rawValue }

@@ -5,9 +5,9 @@ enum PictureMath {
     /// Walking credits a Determined picture needs.
     static let walkingNeeded = LapMath.dailyGoal
 
-    /// Tiles uncovered for this many walking and standing-up credits.
+    /// Tiles uncovered for this many walking and activity credits.
     /// - Flexible: every credit is a tile.
-    /// - Determined: every walking credit is a tile (gold laps too); standing up fills
+    /// - Determined: every walking credit is a tile (gold laps too); activities fill
     ///   at most the tiles past the first 10, so the picture can't finish without 10 walking.
     static func revealed(walking: Int, standing: Int, tiles: Int, mode: RewardMode) -> Int {
         let w = max(0, walking), s = max(0, standing)
@@ -23,9 +23,9 @@ enum PictureMath {
     static func status(walking: Int, standing: Int, tiles: Int, mode: RewardMode) -> String {
         let shown = revealed(walking: walking, standing: standing, tiles: tiles, mode: mode)
         if shown >= tiles { return "All \(tiles) uncovered. Beautiful!" }
-        if shown == 0 { return "Your first walk or time up uncovers a piece." }
+        if shown == 0 { return "Your first walk or activity uncovers a piece." }
         let left = tiles - shown
-        // In Determined mode, once standing up has done its share, only walking uncovers more.
+        // In Determined mode, once activities have done their share, only walking uncovers more.
         if mode == .determined, standing >= tiles - walkingNeeded {
             return "\(shown) of \(tiles) uncovered. \(LapMath.plural(left, "more walk")) to go."
         }

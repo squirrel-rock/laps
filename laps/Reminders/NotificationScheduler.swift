@@ -10,7 +10,6 @@ enum NotificationIDs {
     static let standUpCategory = "STAND_UP"
     static let walkAction = "WALK_NOW"
     static let laterAction = "REMIND_LATER"
-    static let choicesKey = "choices"
 }
 
 /// Applies a reminder plan to the system notification center.
@@ -32,7 +31,7 @@ final class NotificationScheduler: ReminderScheduling {
         let invite = UNNotificationCategory(identifier: NotificationIDs.inviteCategory,
                                             actions: [walk, later],
                                             intentIdentifiers: [])
-        // Stand-ups have no small notification buttons: tapping opens three big choices in the app.
+        // Activity reminders have no small notification buttons: tapping opens the Activities list.
         let standUp = UNNotificationCategory(identifier: NotificationIDs.standUpCategory,
                                              actions: [],
                                              intentIdentifiers: [])
@@ -53,7 +52,6 @@ final class NotificationScheduler: ReminderScheduling {
             content.sound = .default
             if item.kind == .standUp {
                 content.categoryIdentifier = NotificationIDs.standUpCategory
-                content.userInfo = [NotificationIDs.choicesKey: item.choiceIDs]
             } else {
                 content.categoryIdentifier = NotificationIDs.inviteCategory
             }

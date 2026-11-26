@@ -13,15 +13,15 @@ struct RootView: View {
 
     var body: some View {
         TabView(selection: $tab) {
-            TodayView()
-                .tabItem { Label("Today", systemImage: "figure.walk") }
+            LapsView()
+                .tabItem { Label("Laps", systemImage: "figure.walk") }
                 .tag(0)
+            ActivitiesView()
+                .tabItem { Label("Activities", systemImage: "figure.stand") }
+                .tag(2)
             NavigationStack { WeekView() }
                 .tabItem { Label("This Week", systemImage: "chart.bar.fill") }
                 .tag(1)
-            NavigationStack { EverydayView() }
-                .tabItem { Label("Everyday", systemImage: "car.fill") }
-                .tag(2)
             NavigationStack { RemindersView() }
                 .tabItem { Label("Reminders", systemImage: "bell.fill") }
                 .tag(3)
@@ -39,25 +39,13 @@ struct RootView: View {
         .onChange(of: photos.settings) { _, _ in syncPicture() }
         .onChange(of: photos.activePhotos.count) { _, _ in syncPicture() }
         .tint(Theme.teal)
-        .sheet(isPresented: Binding(
-            get: { store.standUpPrompt != nil },
-            set: { if !$0 { store.standUpPrompt = nil } }
-        )) {
-            if let choices = store.standUpPrompt {
-                StandUpPickerView(choices: choices)
-                    .environment(store)
-                    .presentationDragIndicator(.visible)
-            }
+        // Tapping an activity reminder opens Activities.
+        .onChange(of: store.openActivities) { _, open in
+            if open { tab = 2; store.openActivities = false }
         }
-        .onChange(of: store.standUpPrompt != nil) { _, showing in
-            if showing { tab = 0 }
+        .onAppear {   // the app was opened from the reminder itself
+            if store.openActivities { tab = 2; store.openActivities = false }
         }
-        #if DEBUG
-        .onAppear {
-            // Debug-only: `-showStandUp YES` opens the stand-up picker (used for screenshots).
-            if UserDefaults.standard.bool(forKey: "showStandUp") { store.showStandUpPicker() }
-        }
-        #endif
         .overlay(alignment: .bottom) {
             if let problem = store.loadProblem {
                 Text("Couldn't read saved walks (\(problem)). A backup copy was kept.")

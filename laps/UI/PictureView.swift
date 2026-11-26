@@ -333,7 +333,7 @@ struct GalleryDetailView: View {
                     Divider()
                     SummaryRow(title: "That's", value: LapMath.walkingDescription(laps: record.lapCount, carWalks: record.carWalks))
                     Divider()
-                    SummaryRow(title: "Times up", value: "\(record.standingCredits)")
+                    SummaryRow(title: "Activities", value: "\(record.standingCredits)")
                 }
                 .card()
 
