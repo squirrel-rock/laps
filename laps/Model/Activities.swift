@@ -37,6 +37,7 @@ enum Activities {
     static let daily: [Activity] = [
         morningLotion,
         eveningLotion,
+        Activity(id: "shaving", kind: .daily, subject: "Shaving", action: nil, icon: "mustache.fill"),
         Activity(id: "dishwasher", kind: .daily, subject: "Dishwasher", action: "Check or unload", icon: "fork.knife"),
         Activity(id: "heels", kind: .daily, subject: "Heel raises (10)", action: nil, icon: "shoeprints.fill", amberAtGoal: true),
         Activity(id: "squats", kind: .daily, subject: "Squats in the kitchen (10)", action: nil,
@@ -52,6 +53,9 @@ enum Activities {
     /// Anytime activities, alphabetical by subject (Richard's request).
     static let anytime: [Activity] = [
         Activity(id: "bathroom", kind: .anytime, subject: "Bathroom", action: "Visit", icon: "toilet.fill"),
+        Activity(id: "coffee", kind: .anytime, subject: "Coffee", action: nil, icon: "cup.and.saucer.fill"),
+        Activity(id: "recycling", kind: .anytime, subject: "Recycling", action: nil, icon: "arrow.3.trianglepath"),
+        Activity(id: "trash", kind: .anytime, subject: "Trash", action: nil, icon: "trash.fill"),
         Activity(id: "clap", kind: .anytime, subject: "Clap overhead (3)", action: nil, icon: "hands.clap.fill"),
         Activity(id: "fire", kind: .anytime, subject: "Fire", action: "Tend", icon: "flame.fill"),
         Activity(id: "laundry", kind: .anytime, subject: "Laundry", action: nil, icon: "washer.fill"),
